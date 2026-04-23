@@ -9,6 +9,6 @@ RUN npm run build -- --configuration production
 # Etapa 2: runtime con Nginx
 FROM nginx:1.27-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist/fronend_Aventureros/browser /usr/share/nginx/html
+COPY --from=build /app/dist/frontend_Aventureros/browser /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
