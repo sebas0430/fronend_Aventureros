@@ -1,0 +1,156 @@
+<div class="dashboard-container">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="brand-icon">⚙️</div>
+      <span class="brand-name">{{ nombreEmpresa() }}</span>
+    </div>
+    <div class="navbar-center">
+      <a routerLink="/empleados" class="nav-link">👥 Equipo</a>
+      <span class="nav-link active">📋 Procesos</span>
+    </div>
+    @if (usuarioLogueado()) {
+      <div class="navbar-user">
+        <div class="user-avatar-sm">{{ getInitials(usuarioLogueado()!.correo) }}</div>
+        <div class="user-info">
+          <span class="user-email">{{ usuarioLogueado()!.correo }}</span>
+        </div>
+        <button class="logout-btn" (click)="logout()" id="btn-logout">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Salir
+        </button>
+      </div>
+    }
+  </nav>
+
+  <!-- Main -->
+  <main class="main-content">
+    <div class="page-header">
+      <div class="header-text">
+        <h1>Procesos de Negocio</h1>
+        <p>{{ procesos().length }} proceso{{ procesos().length !== 1 ? 's' : '' }} registrado{{ procesos().length !== 1 ? 's' : '' }}</p>
+      </div>
+      <button class="btn-crear" id="btn-crear-proceso" (click)="abrirModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nuevo Proceso
+      </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filtros">
+      @for (f of [['todos','Todos'],['BORRADOR','Borradores'],['PUBLICADO','Publicados'],['INACTIVO','Inactivos']]; track f[0]) {
+        <button class="filtro-btn" [class.active]="filtroEstado() === f[0]"
+          (click)="filtroEstado.set(f[0])" [id]="'filtro-' + f[0]">
+          {{ f[1] }}
+        </button>
+      }
+    </div>
+
+    <!-- Loading -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Cargando procesos...</p>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (errorMessage() && !isLoading()) {
+      <div class="error-banner">⚠️ {{ errorMessage() }}</div>
+    }
+
+    <!-- Grid -->
+    @if (!isLoading()) {
+      @if (procesosFiltrados.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <h3>Sin procesos por aquí</h3>
+          <p>Crea tu primer proceso de negocio haciendo clic en "Nuevo Proceso".</p>
+        </div>
+      } @else {
+        <div class="procesos-grid">
+          @for (p of procesosFiltrados; track p.id) {
+            <div class="proceso-card" [id]="'proceso-' + p.id">
+              <div class="card-glow"></div>
+              <div class="card-top">
+                <div class="proceso-icono">📋</div>
+                <span class="estado-badge" [ngClass]="getEstadoColor(p.estado)">
+                  {{ getEstadoIcon(p.estado) }} {{ p.estado }}
+                </span>
+              </div>
+              <h3 class="proceso-nombre">{{ p.nombre }}</h3>
+              <p class="proceso-desc">{{ p.descripcion }}</p>
+              <div class="proceso-meta">
+                <span class="categoria-tag">🏷️ {{ p.categoria }}</span>
+              </div>
+              <button class="btn-abrir" (click)="abrirEditor(p)" [id]="'btn-editar-' + p.id">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
+                </svg>
+                Abrir editor BPMN
+              </button>
+            </div>
+          }
+        </div>
+      }
+    }
+  </main>
+
+  <!-- Modal Crear Proceso -->
+  @if (mostrarModal()) {
+    <div class="modal-overlay" (click)="cerrarModal()" id="modal-overlay">
+      <div class="modal" (click)="$event.stopPropagation()" id="modal-crear-proceso">
+        <div class="modal-header">
+          <h2>✨ Nuevo Proceso</h2>
+          <button class="modal-close" (click)="cerrarModal()" id="btn-cerrar-modal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="inp-nombre">Nombre del proceso</label>
+            <input id="inp-nombre" type="text" class="form-input"
+              placeholder="Ej: Gestión de vacaciones"
+              [value]="form().nombre"
+              (input)="campoForm('nombre', $any($event.target).value)" />
+          </div>
+          <div class="form-group">
+            <label for="inp-desc">Descripción</label>
+            <textarea id="inp-desc" class="form-input form-textarea"
+              placeholder="¿Qué hace este proceso?"
+              [value]="form().descripcion"
+              (input)="campoForm('descripcion', $any($event.target).value)"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="inp-cat">Categoría</label>
+            <select id="inp-cat" class="form-input form-select"
+              [value]="form().categoria"
+              (change)="campoForm('categoria', $any($event.target).value)">
+              <option value="" disabled>Selecciona una categoría</option>
+              @for (cat of categorias; track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancelar" (click)="cerrarModal()" id="btn-cancelar-modal">Cancelar</button>
+          <button class="btn-confirmar" id="btn-confirmar-crear"
+            [disabled]="!form().nombre || !form().descripcion || !form().categoria || guardando()"
+            (click)="crearProceso()">
+            {{ guardando() ? 'Creando...' : '🚀 Crear Proceso' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>
