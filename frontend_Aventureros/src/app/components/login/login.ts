@@ -1,5 +1,5 @@
-import { Component, signal, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, signal, inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
@@ -19,6 +19,7 @@ export class LoginComponent {
 
   private authService = inject(AuthService);
   private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
 
   onSubmit() {
     if (!this.correo() || !this.password()) {
@@ -33,7 +34,9 @@ export class LoginComponent {
       next: (response) => {
         console.log('Login exitoso:', response);
         // Guardar información del usuario si es necesario (localStorage/SessionStorage)
-        localStorage.setItem('usuario', JSON.stringify(response));
+        if (isPlatformBrowser(this.platformId)) {
+          localStorage.setItem('usuario', JSON.stringify(response));
+        }
         this.isLoading.set(false);
         this.router.navigate(['/empleados']); // Redirigir al dashboard de empleados
       },
