@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fronend-aventureros
+  namespace: aventureros
+  labels:
+    app: fronend-aventureros
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fronend-aventureros
+  template:
+    metadata:
+      labels:
+        app: fronend-aventureros
+    spec:
+      containers:
+        - name: angular-app
+          image: ghcr.io/sebas0430/fronend_aventureros:latest
+          ports:
+            - containerPort: 80
+      imagePullSecrets:
+        - name: ghcr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fronend-aventureros
+  namespace: aventureros
+  labels:
+    app: fronend-aventureros
+spec:
+  selector:
+    app: fronend-aventureros
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fronend-aventureros
+  namespace: aventureros
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: aventureros.inphotech.co
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fronend-aventureros
+                port:
+                  number: 80
