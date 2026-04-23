@@ -1,0 +1,132 @@
+<div class="editor-shell">
+
+  @if (isLoading()) {
+    <div class="editor-loading">
+      <div class="loading-spinner"></div>
+      <p>Cargando proceso...</p>
+    </div>
+  } @else {
+
+    <!-- Top bar -->
+    <header class="editor-header">
+      <button class="back-btn" (click)="volverALista()" id="btn-volver">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Procesos
+      </button>
+      <div class="header-center">
+        <span class="proceso-titulo">{{ proceso()?.nombre }}</span>
+        <span class="proceso-categoria">{{ proceso()?.categoria }}</span>
+      </div>
+      <div class="header-actions">
+        @if (mensaje()) {
+          <span class="save-msg">{{ mensaje() }}</span>
+        }
+        <button class="btn-guardar" id="btn-guardar" (click)="guardar()" [disabled]="guardando()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+          </svg>
+          {{ guardando() ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </header>
+
+    <div class="editor-body">
+
+      <!-- Toolbox -->
+      <aside class="toolbox">
+        <p class="toolbox-title">Herramientas</p>
+        @for (t of TOOLS; track t.id) {
+          <button class="tool-btn" [class.active]="toolActivo() === t.id"
+            (click)="toolActivo.set(t.id)" [id]="'tool-' + t.id"
+            [title]="t.label">
+            <span class="tool-icon">{{ t.icon }}</span>
+            <span class="tool-label">{{ t.label }}</span>
+          </button>
+        }
+
+        <div class="toolbox-divider"></div>
+        <p class="toolbox-title">Vista</p>
+
+        <button class="tool-btn" id="btn-zoom-in" (click)="zoomIn()" title="Acercar">
+          <span class="tool-icon">+</span><span class="tool-label">Acercar</span>
+        </button>
+        <div class="zoom-display">{{ getZoomPercent() }}%</div>
+        <button class="tool-btn" id="btn-zoom-out" (click)="zoomOut()" title="Alejar">
+          <span class="tool-icon">−</span><span class="tool-label">Alejar</span>
+        </button>
+        <button class="tool-btn" id="btn-reset" (click)="resetView()" title="Resetear vista">
+          <span class="tool-icon">⌂</span><span class="tool-label">Centrar</span>
+        </button>
+
+        <div class="toolbox-divider"></div>
+        <p class="toolbox-title">Acciones</p>
+        <button class="tool-btn danger" id="btn-borrar"
+          (click)="borrarSeleccionado()"
+          [class.has-selection]="selectedId()"
+          [title]="selectedId() ? 'Borrar elemento seleccionado' : 'Selecciona un elemento primero (clic en él)'">
+          <span class="tool-icon">🗑</span>
+          <span class="tool-label">{{ selectedId() ? 'Borrar ✓' : 'Borrar' }}</span>
+        </button>
+        @if (selectedId()) {
+          <div class="selection-hint">Pulsa <b>DEL</b> o el botón para borrar</div>
+        }
+
+        <div class="toolbox-divider"></div>
+        <div class="toolbox-legend">
+          <p class="toolbox-title">Leyenda</p>
+          <div class="legend-item">
+            <span class="leg-dot" style="background:#22c55e"></span>Inicio
+          </div>
+          <div class="legend-item">
+            <span class="leg-dot" style="background:#ef4444"></span>Fin
+          </div>
+          <div class="legend-item">
+            <span class="leg-dot" style="background:#4f46e5"></span>Actividad
+          </div>
+          <div class="legend-item">
+            <span class="leg-dot" style="background:#f59e0b; transform: rotate(45deg)"></span>Gateway
+          </div>
+        </div>
+
+        <div class="toolbox-divider"></div>
+        <div class="toolbox-tip">
+          <b>Consejos:</b><br>
+          • Doble clic → renombrar<br>
+          • Rueda del ratón → zoom<br>
+          • Conector → clic en 2 nodos<br>
+          • Cursor + espacio → pan
+        </div>
+      </aside>
+
+      <!-- Canvas -->
+      <div class="canvas-wrapper" #canvasWrapper>
+        <canvas #canvas
+          (mousedown)="onCanvasMouseDown($event)"
+          (mousemove)="onCanvasMouseMove($event)"
+          (mouseup)="onCanvasMouseUp()"
+          (mouseleave)="onCanvasMouseUp()"
+          (wheel)="onCanvasWheel($event)"
+          (dblclick)="onCanvasDblClick($event)"
+          [style.cursor]="toolActivo() === 'cursor' ? 'default' : toolActivo() === 'conector' ? 'crosshair' : 'cell'"
+          id="bpmn-canvas">
+        </canvas>
+
+        <!-- Status bar -->
+        <div class="canvas-status">
+          <span>📐 {{ nodos().length }} nodo{{ nodos().length !== 1 ? 's' : '' }}</span>
+          <span>🔗 {{ conexiones().length }} conexión{{ conexiones().length !== 1 ? 'es' : '' }}</span>
+          <span>🔍 {{ getZoomPercent() }}%</span>
+          @if (toolActivo() === 'conector' && conectandoDesde !== null) {
+            <span class="hint-conector">⚡ Haz clic en el nodo destino para conectar</span>
+          }
+        </div>
+      </div>
+
+    </div>
+  }
+</div>
