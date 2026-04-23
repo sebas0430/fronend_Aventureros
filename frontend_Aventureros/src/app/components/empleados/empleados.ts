@@ -1,6 +1,6 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Component, signal, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 import { UsuarioService } from '../../services/usuario.service';
 import { EmpresaService } from '../../services/empresa.service';
 import { Usuario } from '../../models/usuario.model';
@@ -8,7 +8,7 @@ import { Usuario } from '../../models/usuario.model';
 @Component({
   selector: 'app-empleados',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './empleados.html',
   styleUrl: './empleados.css'
 })
@@ -16,6 +16,7 @@ export class EmpleadosComponent implements OnInit {
   private usuarioService = inject(UsuarioService);
   private empresaService = inject(EmpresaService);
   private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
 
   empleados = signal<Usuario[]>([]);
   usuarioLogueado = signal<Usuario | null>(null);
@@ -24,6 +25,9 @@ export class EmpleadosComponent implements OnInit {
   errorMessage = signal('');
 
   ngOnInit() {
+    // Guard SSR: localStorage no existe en Node.js
+    if (!isPlatformBrowser(this.platformId)) return;
+
     // Recuperar usuario logueado del localStorage
     const storedUser = localStorage.getItem('usuario');
     if (!storedUser) {
@@ -56,7 +60,7 @@ export class EmpleadosComponent implements OnInit {
   }
 
   logout() {
-    localStorage.removeItem('usuario');
+    if (isPlatformBrowser(this.platformId)) localStorage.removeItem('usuario');
     this.router.navigate(['/login']);
   }
 

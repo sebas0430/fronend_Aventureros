@@ -6,6 +6,10 @@
       <div class="brand-icon">🏢</div>
       <span class="brand-name">{{ nombreEmpresa() }}</span>
     </div>
+    <div class="navbar-center">
+      <span class="nav-link active">👥 Equipo</span>
+      <a routerLink="/procesos" class="nav-link">📋 Procesos</a>
+    </div>
 
     @if (usuarioLogueado()) {
       <div class="navbar-user">

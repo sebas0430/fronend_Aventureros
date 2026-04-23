@@ -30,6 +30,15 @@
   gap: 12px;
 }
 
+.navbar-center { display: flex; gap: 6px; }
+.nav-link {
+  padding: 8px 18px; border-radius: 10px; font-size: 0.88rem; font-weight: 500;
+  color: #94a3b8; text-decoration: none; transition: all 0.2s;
+  cursor: pointer; border: none; background: transparent;
+}
+.nav-link:hover { background: rgba(255,255,255,0.06); color: #e2e8f0; }
+.nav-link.active { background: rgba(79,70,229,0.15); color: #a5b4fc; }
+
 .brand-icon {
   font-size: 1.6rem;
 }
