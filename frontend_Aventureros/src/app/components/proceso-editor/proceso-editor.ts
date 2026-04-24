@@ -79,14 +79,16 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
         this.proceso.set(p);
         this.cargarDefinicion(p.definicionJson);
         this.isLoading.set(false);
+        if (isPlatformBrowser(this.platformId)) {
+          setTimeout(() => this.initCanvas(), 100);
+        }
       },
       error: () => { this.router.navigate(['/procesos']); }
     });
   }
 
   ngAfterViewInit() {
-    if (!isPlatformBrowser(this.platformId)) return;
-    setTimeout(() => this.initCanvas(), 100);
+    // Canvas initialization is handled after the process is loaded.
   }
 
   ngOnDestroy() {
@@ -115,6 +117,7 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
   private initCanvas() {
     const canvas = this.canvasRef?.nativeElement;
     if (!canvas) return;
+    if (this.ctx) return;
     this.ctx = canvas.getContext('2d');
     this.resizeCanvas();
     this.loop();
