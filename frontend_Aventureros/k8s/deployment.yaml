@@ -52,7 +52,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: aventureros.inphotech.co
+    - host: grupo13.inphotech.co
       http:
         paths:
           - path: /
