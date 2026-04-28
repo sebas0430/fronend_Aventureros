@@ -1,9 +1,10 @@
-import { Component, signal, inject, OnInit, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, signal, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ProcesoService } from '../../services/proceso.service';
 import { EmpresaService } from '../../services/empresa.service';
+import { AuthService } from '../../services/auth.service';
 import { Proceso, CrearProcesoRequest, EstadoProceso } from '../../models/proceso.model';
 import { Usuario } from '../../models/usuario.model';
 
@@ -17,8 +18,8 @@ import { Usuario } from '../../models/usuario.model';
 export class ProcesosComponent implements OnInit {
   private procesoService = inject(ProcesoService);
   private empresaService = inject(EmpresaService);
+  private authService = inject(AuthService);
   private router = inject(Router);
-  private platformId = inject(PLATFORM_ID);
 
   procesos = signal<Proceso[]>([]);
   usuarioLogueado = signal<Usuario | null>(null);
@@ -42,13 +43,10 @@ export class ProcesosComponent implements OnInit {
   ];
 
   ngOnInit() {
-    // Guard SSR: localStorage solo existe en el browser, no en Node.js
-    if (!isPlatformBrowser(this.platformId)) return;
+    // El AuthGuard ya garantiza que el usuario está autenticado
+    const user = this.authService.getUsuario();
+    if (!user) return;
 
-    const stored = localStorage.getItem('usuario');
-    if (!stored) { this.router.navigate(['/login']); return; }
-
-    const user: Usuario = JSON.parse(stored);
     this.usuarioLogueado.set(user);
 
     this.empresaService.obtenerEmpresa(user.empresaId).subscribe({
@@ -131,7 +129,7 @@ export class ProcesosComponent implements OnInit {
   }
 
   logout() {
-    if (isPlatformBrowser(this.platformId)) localStorage.removeItem('usuario');
+    this.authService.logout();
     this.router.navigate(['/login']);
   }
 }

@@ -1,8 +1,9 @@
-import { Component, signal, inject, OnInit, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, signal, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { UsuarioService } from '../../services/usuario.service';
 import { EmpresaService } from '../../services/empresa.service';
+import { AuthService } from '../../services/auth.service';
 import { Usuario } from '../../models/usuario.model';
 
 @Component({
@@ -15,8 +16,8 @@ import { Usuario } from '../../models/usuario.model';
 export class EmpleadosComponent implements OnInit {
   private usuarioService = inject(UsuarioService);
   private empresaService = inject(EmpresaService);
+  private authService = inject(AuthService);
   private router = inject(Router);
-  private platformId = inject(PLATFORM_ID);
 
   empleados = signal<Usuario[]>([]);
   usuarioLogueado = signal<Usuario | null>(null);
@@ -25,17 +26,10 @@ export class EmpleadosComponent implements OnInit {
   errorMessage = signal('');
 
   ngOnInit() {
-    // Guard SSR: localStorage no existe en Node.js
-    if (!isPlatformBrowser(this.platformId)) return;
+    // El AuthGuard ya garantiza que el usuario está autenticado
+    const user = this.authService.getUsuario();
+    if (!user) return;
 
-    // Recuperar usuario logueado del localStorage
-    const storedUser = localStorage.getItem('usuario');
-    if (!storedUser) {
-      this.router.navigate(['/login']);
-      return;
-    }
-
-    const user: Usuario = JSON.parse(storedUser);
     this.usuarioLogueado.set(user);
 
     // Cargar nombre de la empresa
@@ -60,7 +54,7 @@ export class EmpleadosComponent implements OnInit {
   }
 
   logout() {
-    if (isPlatformBrowser(this.platformId)) localStorage.removeItem('usuario');
+    this.authService.logout();
     this.router.navigate(['/login']);
   }
 
