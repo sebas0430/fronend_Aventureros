@@ -6,8 +6,8 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProcesoService } from '../../services/proceso.service';
+import { AuthService } from '../../services/auth.service';
 import { Proceso, NodoBpmn, NodoBpmnTipo, ConexionBpmn, DefinicionBpmn } from '../../models/proceso.model';
-import { Usuario } from '../../models/usuario.model';
 
 @Component({
   selector: 'app-proceso-editor',
@@ -23,6 +23,7 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private procesoService = inject(ProcesoService);
+  private authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
 
   proceso = signal<Proceso | null>(null);
@@ -65,11 +66,9 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
   ];
 
   ngOnInit() {
-    // Guard SSR: localStorage no existe en Node.js
+    // El AuthGuard ya garantiza que el usuario está autenticado.
+    // Aún necesitamos PLATFORM_ID para operaciones de Canvas (browser-only).
     if (!isPlatformBrowser(this.platformId)) return;
-
-    const stored = localStorage.getItem('usuario');
-    if (!stored) { this.router.navigate(['/login']); return; }
 
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id || isNaN(id)) { this.router.navigate(['/procesos']); return; }
