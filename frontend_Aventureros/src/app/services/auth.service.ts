@@ -1,6 +1,6 @@
 import { Injectable, inject, PLATFORM_ID, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, map } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
 import { Usuario, LoginRequest, LoginResponse } from '../models/usuario.model';
 
@@ -20,7 +20,15 @@ export class AuthService {
    * Guarda el token JWT y los datos del usuario en localStorage.
    */
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials).pipe(
+    return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
+      map((response) => {
+        // El backend actual retorna directamente el usuario sin token.
+        // Mapeamos a la estructura esperada y asignamos un token temporal.
+        return {
+          token: 'dummy-jwt-token',
+          usuario: response as Usuario
+        };
+      }),
       tap((response) => {
         if (isPlatformBrowser(this.platformId)) {
           localStorage.setItem('auth_token', response.token);
