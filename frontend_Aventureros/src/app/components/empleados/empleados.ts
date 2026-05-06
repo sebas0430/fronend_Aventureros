@@ -1,5 +1,5 @@
-import { Component, signal, computed, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, signal, computed, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { UsuarioService } from '../../services/usuario.service';
@@ -30,8 +30,7 @@ export class EmpleadosComponent implements OnInit {
   private poolService = inject(PoolService);
   private rolPoolService = inject(RolPoolService);
   private router = inject(Router);
-
-
+  private platformId = inject(PLATFORM_ID);  
   empleados        = signal<Usuario[]>([]);
   usuarioLogueado  = signal<Usuario | null>(null);
   isLoading        = signal(true);
@@ -64,29 +63,21 @@ export class EmpleadosComponent implements OnInit {
   });
 
   ngOnInit() {
-    // El AuthGuard ya garantiza que el usuario está autenticado
-    const user = this.authService.getUsuario();
-    if (!user) return;
-
     if (!isPlatformBrowser(this.platformId)) return;
 
-    const storedUser = localStorage.getItem('usuario');
-    if (!storedUser) {
+    const u = this.authService.getUsuario();
+    if (!u) {
       this.router.navigate(['/login']);
       return;
     }
-
-    const user: Usuario = JSON.parse(storedUser);
-
-    // Solo el ADMINISTRADOR_EMPRESA puede acceder a esta pantalla
-    if (user.rol !== 'ADMINISTRADOR_EMPRESA') {
+    
+    if (u.rol !== 'ADMINISTRADOR_EMPRESA') {
       this.router.navigate(['/procesos']);
       return;
     }
-
-    this.usuarioLogueado.set(user);
-
-    this.cargarEmpleados(user);
+    
+    this.usuarioLogueado.set(u);
+    this.cargarEmpleados(u);
   }
 
   private cargarEmpleados(user: Usuario) {
@@ -106,18 +97,6 @@ export class EmpleadosComponent implements OnInit {
     });
   }
 
-  logout() {
-    this.authService.logout();
-    this.router.navigate(['/login']);
-  }
-
-  getRolLabel(rol: string): string {
-    const roles: Record<string, string> = {
-      ADMIN: 'Administrador',
-      EMPLEADO: 'Empleado',
-      SUPERVISOR: 'Supervisor'
-    };
-    return roles[rol] ?? rol;
   cargarPoolsYRols(logueado: Usuario) {
     this.poolService.listarPorEmpresa(logueado.empresaId).subscribe({
       next: (pools) => {
