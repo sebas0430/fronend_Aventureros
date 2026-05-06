@@ -8,48 +8,7 @@
   color: #e2e8f0;
 }
 
-/* ─── Navbar ───────────────────────────────────── */
-.navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 32px;
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  position: sticky; top: 0; z-index: 100;
-}
-.navbar-brand { display: flex; align-items: center; gap: 12px; }
-.brand-icon { font-size: 1.6rem; }
-.brand-name { font-size: 1.3rem; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
 
-.navbar-center { display: flex; gap: 6px; }
-.nav-link {
-  padding: 8px 18px; border-radius: 10px; font-size: 0.88rem; font-weight: 500;
-  color: #94a3b8; text-decoration: none; transition: all 0.2s;
-  cursor: pointer; border: none; background: transparent;
-}
-.nav-link:hover { background: rgba(255,255,255,0.06); color: #e2e8f0; }
-.nav-link.active { background: rgba(79,70,229,0.15); color: #a5b4fc; }
-
-.navbar-user { display: flex; align-items: center; gap: 14px; }
-.user-avatar-sm {
-  width: 38px; height: 38px; border-radius: 50%;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 0.85rem; color: white;
-}
-.user-info { display: flex; flex-direction: column; }
-.user-email { font-size: 0.88rem; color: #e2e8f0; font-weight: 500; }
-
-.logout-btn {
-  display: flex; align-items: center; gap: 6px;
-  padding: 8px 16px;
-  background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
-  border-radius: 10px; color: #f87171; font-size: 0.85rem; font-weight: 500;
-  cursor: pointer; transition: all 0.2s;
-}
-.logout-btn:hover { background: rgba(239,68,68,0.2); transform: translateY(-1px); }
 
 /* ─── Main ─────────────────────────────────────── */
 .main-content { max-width: 1280px; margin: 0 auto; padding: 40px 28px; }

@@ -16,6 +16,10 @@ export class ProcesoService {
     return this.http.get<Proceso[]>(`${this.apiUrl}/empresa/${empresaId}`);
   }
 
+  listarPorAutor(autorId: number): Observable<Proceso[]> {
+    return this.http.get<Proceso[]>(`${this.apiUrl}/autor/${autorId}`);
+  }
+
   obtenerProceso(id: number): Observable<Proceso> {
     return this.http.get<Proceso>(`${this.apiUrl}/${id}`);
   }

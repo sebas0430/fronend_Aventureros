@@ -1,42 +1,29 @@
 <div class="dashboard-container">
 
   <!-- Navbar -->
-  <nav class="navbar">
-    <div class="navbar-brand">
-      <div class="brand-icon">🏢</div>
-      <span class="brand-name">{{ nombreEmpresa() }}</span>
-    </div>
-    <div class="navbar-center">
-      <span class="nav-link active">👥 Equipo</span>
-      <a routerLink="/procesos" class="nav-link">📋 Procesos</a>
-    </div>
-
-    @if (usuarioLogueado()) {
-      <div class="navbar-user">
-        <div class="user-avatar-sm">{{ getInitials(usuarioLogueado()!.correo) }}</div>
-        <div class="user-info">
-          <span class="user-email">{{ usuarioLogueado()!.correo }}</span>
-          <span class="user-rol">{{ getRolLabel(usuarioLogueado()!.rol) }}</span>
-        </div>
-        <button class="logout-btn" (click)="logout()" id="btn-logout">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16 17 21 12 16 7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
-          </svg>
-          Salir
-        </button>
-      </div>
-    }
-  </nav>
+  <app-navbar></app-navbar>
 
   <!-- Main Content -->
   <main class="main-content">
     <div class="page-header">
       <div class="header-text">
-        <h1>Mis Compañeros</h1>
-        <p>Equipo de la empresa — {{ empleados().length }} miembro{{ empleados().length !== 1 ? 's' : '' }}</p>
+        <h1>Gestión de Equipo</h1>
+        <p>{{ empleados().length }} miembro{{ empleados().length !== 1 ? 's' : '' }} en la empresa</p>
+      </div>
+      <div class="header-actions">
+        <select class="pool-filter" [ngModel]="filtroPool()" (ngModelChange)="filtroPool.set($event)">
+          <option value="TODOS">Todos los Departamentos</option>
+          @for (pool of pools(); track pool.id) {
+            <option [value]="pool.id">{{ pool.nombre }}</option>
+          }
+        </select>
+        <button class="btn-invitar" (click)="abrirModal()" id="btn-abrir-invitar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Invitar miembro
+        </button>
       </div>
       <div class="header-decoration"></div>
     </div>
@@ -64,15 +51,15 @@
 
     <!-- Grid de empleados -->
     @if (!isLoading() && !errorMessage()) {
-      @if (empleados().length === 0) {
+      @if (empleadosFiltrados().length === 0) {
         <div class="empty-state">
           <div class="empty-icon">👥</div>
-          <h3>Sin compañeros por ahora</h3>
-          <p>No hay otros empleados registrados en la empresa.</p>
+          <h3>Sin miembros por ahora</h3>
+          <p>Usa el botón de arriba para invitar al primer compañero.</p>
         </div>
       } @else {
         <div class="employees-grid">
-          @for (emp of empleados(); track emp.id) {
+          @for (emp of empleadosFiltrados(); track emp.id) {
             <div class="employee-card" [class.inactive]="!emp.activo">
               <div class="card-glow"></div>
               <div class="card-header">
@@ -96,15 +83,80 @@
                   Empresa #{{ emp.empresaId }}
                 </div>
               </div>
+
+              <!-- Mostrar Pools en los que está asignado en la Card -->
+              <div class="pools-list mt-3">
+                <span class="info-label d-block mb-1">Departamentos:</span>
+                @if (!asignacionesMap()[emp.id] || asignacionesMap()[emp.id].length === 0) {
+                  <span class="no-pools">Ningún departamento asignado</span>
+                } @else {
+                  <div class="pool-tags">
+                    @for (a of asignacionesMap()[emp.id]; track a.pool.id) {
+                      <div class="pool-tag" [title]="'Rol: ' + a.rol.nombre">
+                        {{ a.pool.nombre }} <span class="rol-min">{{ a.rol.nombre }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- Admin actions -->
               <div class="card-footer">
-                <button
-                  class="toggle-btn"
-                  [class.deactivate]="emp.activo"
-                  [class.activate]="!emp.activo"
-                  (click)="toggleActivo(emp)"
-                  [id]="'btn-toggle-' + emp.id">
-                  {{ emp.activo ? '🔴 Desactivar' : '🟢 Activar' }}
-                </button>
+                <!-- Cambiar rol -->
+                <div class="rol-selector-group">
+                  <label [for]="'select-rol-' + emp.id" class="rol-label">Rol</label>
+                  <select
+                    [id]="'select-rol-' + emp.id"
+                    class="rol-select"
+                    [value]="emp.rol"
+                    (change)="cambiarRol(emp, $any($event.target).value)">
+                    <option value="EDITOR">Editor</option>
+                    <option value="SOLO_LECTURA">Solo Lectura</option>
+                    <option value="ADMINISTRADOR_EMPRESA">Administrador</option>
+                  </select>
+                </div>
+                <!-- Activar / desactivar y Eliminar -->
+                <div class="card-actions">
+                  <button
+                    class="assign-btn"
+                    (click)="abrirAsignarPool(emp)"
+                    title="Asignar a Departamento (Pool)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5c-1.1 0-2 .9-2 2v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
+                    </svg>
+                  </button>
+                  <button
+                    class="details-btn"
+                    (click)="verDetalles(emp.id)"
+                    title="Ver detalles del usuario">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+                  <button
+                    class="toggle-btn"
+                    [class.deactivate]="emp.activo"
+                    [class.activate]="!emp.activo"
+                    (click)="toggleActivo(emp)"
+                    [id]="'btn-toggle-' + emp.id">
+                    {{ emp.activo ? '🔴 Desactivar' : '🟢 Activar' }}
+                  </button>
+                  <button
+                    class="delete-btn"
+                    (click)="eliminarEmpleado(emp)"
+                    [id]="'btn-delete-' + emp.id"
+                    title="Eliminar permanentemente">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           }
@@ -112,4 +164,42 @@
       }
     }
   </main>
+
+  <!-- Modal de invitación -->
+  @if (mostrarModal() && usuarioLogueado()) {
+    <app-invitar-usuario
+      [empresaId]="usuarioLogueado()!.empresaId"
+      (cerrar)="cerrarModal()"
+      (invitacionExitosa)="onInvitacionExitosa()">
+    </app-invitar-usuario>
+  }
+
+  <!-- Modal Confirmación Eliminar -->
+  @if (empleadoAEliminar()) {
+    <app-confirmar-eliminar
+      [usuario]="empleadoAEliminar()"
+      [guardando]="eliminando()"
+      (confirmar)="confirmarEliminar()"
+      (cancelar)="cerrarModalEliminar()">
+    </app-confirmar-eliminar>
+  }
+
+  <!-- Modal Detalles de Usuario -->
+  @if (usuarioSeleccionadoId()) {
+    <app-usuario-detalle
+      [usuarioId]="usuarioSeleccionadoId()!"
+      (cerrar)="cerrarDetalles()">
+    </app-usuario-detalle>
+  }
+
+  <!-- Modal Asignar Pool -->
+  @if (usuarioParaAsignarPool() && usuarioLogueado()) {
+    <app-asignar-pool
+      [usuarioDestino]="usuarioParaAsignarPool()!"
+      [usuarioAdminId]="usuarioLogueado()!.id"
+      (cerrar)="cerrarAsignarPool()"
+      (asignacionExitosa)="cerrarAsignarPool(true)">
+    </app-asignar-pool>
+  }
+
 </div>

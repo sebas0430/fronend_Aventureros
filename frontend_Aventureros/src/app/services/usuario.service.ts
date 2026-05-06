@@ -14,7 +14,23 @@ export class UsuarioService {
     return this.http.get<Usuario[]>(`${this.apiUrl}/empresa/${empresaId}`);
   }
 
+  obtenerUsuario(id: number): Observable<Usuario> {
+    return this.http.get<Usuario>(`${this.apiUrl}/${id}`);
+  }
+
   cambiarActivo(id: number, activo: boolean): Observable<Usuario> {
     return this.http.put<Usuario>(`${this.apiUrl}/${id}`, { activo });
+  }
+
+  cambiarRol(id: number, rol: string): Observable<Usuario> {
+    return this.http.put<Usuario>(`${this.apiUrl}/${id}`, { rol });
+  }
+
+  invitarPorCorreo(correo: string, empresaId: number, rol: string, password: string): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/invitar`, { correo, empresaId, rol, password });
+  }
+
+  eliminarUsuario(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

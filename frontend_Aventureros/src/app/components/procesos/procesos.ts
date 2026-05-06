@@ -6,11 +6,12 @@ import { ProcesoService } from '../../services/proceso.service';
 import { EmpresaService } from '../../services/empresa.service';
 import { Proceso, CrearProcesoRequest, EstadoProceso } from '../../models/proceso.model';
 import { Usuario } from '../../models/usuario.model';
+import { NavbarComponent } from '../navbar/navbar';
 
 @Component({
   selector: 'app-procesos',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, NavbarComponent],
   templateUrl: './procesos.html',
   styleUrl: './procesos.css'
 })
@@ -22,7 +23,6 @@ export class ProcesosComponent implements OnInit {
 
   procesos = signal<Proceso[]>([]);
   usuarioLogueado = signal<Usuario | null>(null);
-  nombreEmpresa = signal('Cargando...');
   isLoading = signal(true);
   errorMessage = signal('');
   mostrarModal = signal(false);
@@ -50,11 +50,6 @@ export class ProcesosComponent implements OnInit {
 
     const user: Usuario = JSON.parse(stored);
     this.usuarioLogueado.set(user);
-
-    this.empresaService.obtenerEmpresa(user.empresaId).subscribe({
-      next: (e) => this.nombreEmpresa.set(e.nombre),
-      error: () => this.nombreEmpresa.set('Mi Empresa')
-    });
 
     this.cargarProcesos(user.empresaId);
   }
@@ -128,10 +123,5 @@ export class ProcesosComponent implements OnInit {
 
   getInitials(correo: string): string {
     return correo.substring(0, 2).toUpperCase();
-  }
-
-  logout() {
-    if (isPlatformBrowser(this.platformId)) localStorage.removeItem('usuario');
-    this.router.navigate(['/login']);
   }
 }
