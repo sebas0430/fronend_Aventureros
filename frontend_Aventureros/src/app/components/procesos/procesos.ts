@@ -7,11 +7,12 @@ import { EmpresaService } from '../../services/empresa.service';
 import { AuthService } from '../../services/auth.service';
 import { Proceso, CrearProcesoRequest, EstadoProceso } from '../../models/proceso.model';
 import { Usuario } from '../../models/usuario.model';
+import { NavbarComponent } from '../navbar/navbar';
 
 @Component({
   selector: 'app-procesos',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, NavbarComponent],
   templateUrl: './procesos.html',
   styleUrl: './procesos.css'
 })
@@ -23,7 +24,6 @@ export class ProcesosComponent implements OnInit {
 
   procesos = signal<Proceso[]>([]);
   usuarioLogueado = signal<Usuario | null>(null);
-  nombreEmpresa = signal('Cargando...');
   isLoading = signal(true);
   errorMessage = signal('');
   mostrarModal = signal(false);
@@ -48,11 +48,6 @@ export class ProcesosComponent implements OnInit {
     if (!user) return;
 
     this.usuarioLogueado.set(user);
-
-    this.empresaService.obtenerEmpresa(user.empresaId).subscribe({
-      next: (e) => this.nombreEmpresa.set(e.nombre),
-      error: () => this.nombreEmpresa.set('Mi Empresa')
-    });
 
     this.cargarProcesos(user.empresaId);
   }
