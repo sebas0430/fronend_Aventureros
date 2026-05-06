@@ -1,9 +1,14 @@
-
-
-
 <div class="dashboard-container">
-    <!-- Navbar -->
+  <!-- Navbar -->
   <app-navbar></app-navbar>
+
+  <!-- Error banner -->
+  @if (errorMsg()) {
+    <div class="error-banner">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      {{ errorMsg() }}
+    </div>
+  }
 
   <div class="page-header">
     <div>
@@ -29,39 +34,41 @@
     </div>
   </div>
 
-  <div class="pools-grid" *ngIf="filteredPools.length > 0; else emptyState">
-    <div class="pool-card" *ngFor="let pool of filteredPools">
-      <div class="pool-card-header">
-        <div class="pool-icon-wrapper">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-            <line x1="8" y1="21" x2="16" y2="21"></line>
-            <line x1="12" y1="17" x2="12" y2="21"></line>
-          </svg>
+  @if (filteredPools().length > 0) {
+    <div class="pools-grid">
+      @for (pool of filteredPools(); track pool.id) {
+        <div class="pool-card">
+          <div class="pool-card-header">
+            <div class="pool-icon-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+              </svg>
+            </div>
+            <div class="pool-actions">
+              <button class="action-btn edit" (click)="openModal(pool)" title="Editar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button class="action-btn delete" (click)="eliminarPool(pool.id)" title="Eliminar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="pool-card-body">
+            <h3 class="pool-name">{{ pool.nombre }}</h3>
+            <p class="pool-desc">{{ pool.descripcion || 'Sin descripción' }}</p>
+          </div>
         </div>
-        <div class="pool-actions">
-          <button class="action-btn edit" (click)="openModal(pool)" title="Editar">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-            </svg>
-          </button>
-          <button class="action-btn delete" (click)="eliminarPool(pool.id)" title="Eliminar">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div class="pool-card-body">
-        <h3 class="pool-name">{{ pool.nombre }}</h3>
-        <p class="pool-desc">{{ pool.descripcion || 'Sin descripción' }}</p>
-      </div>
+      }
     </div>
-  </div>
-
-  <ng-template #emptyState>
+  } @else {
     <div class="empty-state">
       <div class="empty-icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -74,47 +81,49 @@
       <p>Crea un nuevo Pool para empezar a organizar tus procesos.</p>
       <button class="btn-outline" (click)="openModal()">Crear Pool</button>
     </div>
-  </ng-template>
+  }
 </div>
 
 <!-- Modal Form -->
-<div class="modal-overlay" *ngIf="isModalOpen" (click)="closeModal()">
-  <div class="modal-container" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>{{ isEditMode ? 'Editar Pool' : 'Crear Nuevo Pool' }}</h2>
-      <button class="close-btn" (click)="closeModal()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-    </div>
-    
-    <div class="modal-body">
-      <form [formGroup]="poolForm" (ngSubmit)="guardarPool()">
-        <div class="form-group">
-          <label for="nombre">Nombre <span class="required">*</span></label>
-          <input type="text" id="nombre" formControlName="nombre" placeholder="Ej. Departamento de Ventas" class="form-control" [class.is-invalid]="poolForm.get('nombre')?.invalid && poolForm.get('nombre')?.touched">
-          <div class="error-msg" *ngIf="poolForm.get('nombre')?.invalid && poolForm.get('nombre')?.touched">
-            El nombre es obligatorio y debe tener al menos 3 caracteres.
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="descripcion">Descripción</label>
-          <textarea id="descripcion" formControlName="descripcion" rows="4" placeholder="Describe el propósito de este pool..." class="form-control"></textarea>
-          <div class="error-msg" *ngIf="poolForm.get('descripcion')?.errors?.['maxlength']">
-            La descripción no puede exceder los 500 caracteres.
-          </div>
-        </div>
+@if (isModalOpen()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ isEditMode() ? 'Editar Pool' : 'Crear Nuevo Pool' }}</h2>
+        <button class="close-btn" (click)="closeModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn-secondary" (click)="closeModal()">Cancelar</button>
-          <button type="submit" class="btn-primary" [disabled]="poolForm.invalid">
-            {{ isEditMode ? 'Guardar Cambios' : 'Crear Pool' }}
-          </button>
-        </div>
-      </form>
+      <div class="modal-body">
+        <form [formGroup]="poolForm" (ngSubmit)="guardarPool()">
+          <div class="form-group">
+            <label for="nombre">Nombre <span class="required">*</span></label>
+            <input type="text" id="nombre" formControlName="nombre" placeholder="Ej. Departamento de Ventas" class="form-control" [class.is-invalid]="poolForm.get('nombre')?.invalid && poolForm.get('nombre')?.touched">
+            @if (poolForm.get('nombre')?.invalid && poolForm.get('nombre')?.touched) {
+              <div class="error-msg">El nombre es obligatorio y debe tener al menos 3 caracteres.</div>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="descripcion">Descripción</label>
+            <textarea id="descripcion" formControlName="descripcion" rows="4" placeholder="Describe el propósito de este pool..." class="form-control"></textarea>
+            @if (poolForm.get('descripcion')?.errors?.['maxlength']) {
+              <div class="error-msg">La descripción no puede exceder los 500 caracteres.</div>
+            }
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="btn-primary" [disabled]="poolForm.invalid || isSaving()">
+              {{ isSaving() ? 'Guardando...' : (isEditMode() ? 'Guardar Cambios' : 'Crear Pool') }}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-</div>
+}
