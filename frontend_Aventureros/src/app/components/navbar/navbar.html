@@ -1,0 +1,31 @@
+<nav class="navbar">
+  <div class="navbar-brand">
+    <div class="brand-icon">🏢</div>
+    <span class="brand-name">{{ nombreEmpresa() }}</span>
+  </div>
+  <div class="navbar-center">
+    @if (usuarioLogueado()?.rol === 'ADMINISTRADOR_EMPRESA') {
+      <a routerLink="/empleados" class="nav-link" routerLinkActive="active">👥 Equipo</a>
+    }
+    <a routerLink="/procesos" class="nav-link" routerLinkActive="active">📋 Procesos</a>
+  </div>
+
+  @if (usuarioLogueado()) {
+    <div class="navbar-user">
+      <div class="user-avatar-sm">{{ getInitials(usuarioLogueado()!.correo) }}</div>
+      <div class="user-info">
+        <span class="user-email">{{ usuarioLogueado()!.correo }}</span>
+        <span class="user-rol">{{ getRolLabel(usuarioLogueado()!.rol) }}</span>
+      </div>
+      <button class="logout-btn" (click)="logout()" id="btn-logout">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Salir
+      </button>
+    </div>
+  }
+</nav>
