@@ -1,0 +1,55 @@
+<div class="modal-overlay" (click)="cerrar.emit()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>🏢 Asignar a Departamento</h2>
+      <button class="modal-close" (click)="cerrar.emit()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <p class="subtitle">Asigna un departamento (Pool) y permisos específicos a <strong>{{ usuarioDestino.correo }}</strong>.</p>
+
+      @if (errorMessage()) {
+        <div class="error-banner">⚠️ {{ errorMessage() }}</div>
+      }
+
+      <div class="form-group">
+        <label>Departamento (Pool)</label>
+        @if (isLoadingPools()) {
+          <div class="loading-inline">Cargando departamentos...</div>
+        } @else {
+          <select class="form-select" [ngModel]="poolIdSeleccionado()" (ngModelChange)="onPoolChange($event)">
+            <option [ngValue]="null" disabled selected>-- Selecciona un Departamento --</option>
+            @for (pool of pools(); track pool.id) {
+              <option [value]="pool.id">{{ pool.nombre }}</option>
+            }
+          </select>
+        }
+      </div>
+
+      @if (poolIdSeleccionado()) {
+        <div class="form-group mt-4">
+          <label>Rol dentro del Departamento</label>
+          @if (isLoadingRoles()) {
+            <div class="loading-inline">Cargando roles...</div>
+          } @else if (rolesPool().length === 0) {
+            <div class="empty-roles">No hay roles configurados para este departamento.</div>
+          } @else {
+            <select class="form-select" [ngModel]="rolIdSeleccionado()" (ngModelChange)="rolIdSeleccionado.set(+$event)">
+              <option [ngValue]="null" disabled selected>-- Selecciona un Rol --</option>
+              @for (rol of rolesPool(); track rol.id) {
+                <option [value]="rol.id">{{ rol.nombre }}</option>
+              }
+            </select>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="cerrar.emit()" [disabled]="isSaving()">Cancelar</button>
+      <button class="btn-primary" (click)="guardar()" [disabled]="isSaving() || !poolIdSeleccionado() || !rolIdSeleccionado()">
+        {{ isSaving() ? 'Asignando...' : 'Asignar' }}
+      </button>
+    </div>
+  </div>
+</div>
