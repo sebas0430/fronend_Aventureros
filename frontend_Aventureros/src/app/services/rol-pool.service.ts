@@ -19,4 +19,8 @@ export class RolPoolService {
   obtenerRolDeUsuario(usuarioDestinoId: number, poolId: number): Observable<AsignacionRolDTO> {
     return this.http.get<AsignacionRolDTO>(`${this.apiUrl}/usuario/${usuarioDestinoId}/pool/${poolId}`);
   }
+
+  removerAsignacion(usuarioDestinoId: number, poolId: number, usuarioAdminId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/desasignar?usuarioDestinoId=${usuarioDestinoId}&poolId=${poolId}&usuarioId=${usuarioAdminId}`);
+  }
 }

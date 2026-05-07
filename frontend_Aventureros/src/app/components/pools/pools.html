@@ -2,86 +2,91 @@
   <!-- Navbar -->
   <app-navbar></app-navbar>
 
-  <!-- Error banner -->
-  @if (errorMsg()) {
-    <div class="error-banner">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-      {{ errorMsg() }}
-    </div>
-  }
-
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">Gestión de Pools</h1>
-      <p class="page-subtitle">Administra los contenedores organizacionales de tus procesos.</p>
-    </div>
-    <button class="btn-primary" (click)="openModal()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      Nuevo Pool
-    </button>
-  </div>
-
-  <div class="controls-bar">
-    <div class="search-box">
-      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"></circle>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-      </svg>
-      <input type="text" placeholder="Buscar por nombre o descripción..." [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" class="search-input">
-    </div>
-  </div>
-
-  @if (filteredPools().length > 0) {
-    <div class="pools-grid">
-      @for (pool of filteredPools(); track pool.id) {
-        <div class="pool-card">
-          <div class="pool-card-header">
-            <div class="pool-icon-wrapper">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                <line x1="8" y1="21" x2="16" y2="21"></line>
-                <line x1="12" y1="17" x2="12" y2="21"></line>
-              </svg>
-            </div>
-            <div class="pool-actions">
-              <button class="action-btn edit" (click)="openModal(pool)" title="Editar">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-              </button>
-              <button class="action-btn delete" (click)="eliminarPool(pool.id)" title="Eliminar">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
-          <div class="pool-card-body">
-            <h3 class="pool-name">{{ pool.nombre }}</h3>
-            <p class="pool-desc">{{ pool.descripcion || 'Sin descripción' }}</p>
-          </div>
-        </div>
-      }
-    </div>
-  } @else {
-    <div class="empty-state">
-      <div class="empty-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-          <line x1="8" y1="21" x2="16" y2="21"></line>
-          <line x1="12" y1="17" x2="12" y2="21"></line>
-        </svg>
+  <main class="main-content">
+    <div class="page-header">
+      <div class="header-text">
+        <h1 class="page-title">Gestión de Pools</h1>
+        <p class="page-subtitle">Administra los contenedores organizacionales de tus procesos.</p>
       </div>
-      <h3>No se encontraron Pools</h3>
-      <p>Crea un nuevo Pool para empezar a organizar tus procesos.</p>
-      <button class="btn-outline" (click)="openModal()">Crear Pool</button>
+
+      <div class="header-actions">
+        <div class="search-box">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" placeholder="Buscar pools..." [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" class="search-input">
+        </div>
+
+        <button class="btn-primary" (click)="openModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Nuevo Pool
+        </button>
+      </div>
+      <div class="header-decoration"></div>
     </div>
-  }
+
+    <!-- Error banner -->
+    @if (errorMsg()) {
+      <div class="error-banner">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        {{ errorMsg() }}
+      </div>
+    }
+
+    @if (filteredPools().length > 0) {
+      <div class="pools-grid">
+        @for (pool of filteredPools(); track pool.id) {
+          <div class="pool-card cursor-pointer" (click)="verProcesos(pool)">
+            <div class="card-glow"></div>
+            <div class="pool-card-header">
+              <div class="pool-icon-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                  <line x1="8" y1="21" x2="16" y2="21"></line>
+                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+              </div>
+              <div class="pool-actions">
+                <button class="action-btn edit" (click)="openModal(pool); $event.stopPropagation()" title="Editar">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </button>
+                <button class="action-btn delete" (click)="eliminarPool(pool.id); $event.stopPropagation()" title="Eliminar">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="pool-card-body">
+              <h3 class="pool-name">{{ pool.nombre }}</h3>
+              <p class="pool-desc">{{ pool.descripcion || 'Sin descripción' }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+        </div>
+        <h3>No se encontraron Pools</h3>
+        <p>Crea un nuevo Pool para empezar a organizar tus procesos.</p>
+        <button class="btn-outline" (click)="openModal()">Crear Pool</button>
+      </div>
+    }
+  </main>
 </div>
 
 <!-- Modal Form -->
@@ -123,6 +128,55 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Procesos Asociados -->
+@if (isProcesosModalOpen()) {
+  <div class="modal-overlay" (click)="cerrarProcesosModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Procesos en: {{ poolSeleccionadoName() }}</h2>
+        <button class="close-btn" (click)="cerrarProcesosModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        @if (isLoadingProcesos()) {
+          <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Buscando procesos...</p>
+          </div>
+        } @else {
+          @if (procesosSeleccionados().length === 0) {
+            <div class="empty-state">
+              <div class="empty-icon">📁</div>
+              <h3>Sin procesos asociados</h3>
+              <p>No se encontraron procesos compartidos con este departamento.</p>
+            </div>
+          } @else {
+            <ul class="procesos-list">
+              @for (proceso of procesosSeleccionados(); track proceso.id) {
+                <li class="proceso-item">
+                  <div class="proceso-info">
+                    <span class="proceso-name">{{ proceso.nombre }}</span>
+                    <span class="badge" [class]="'badge-' + proceso.estado.toLowerCase()">{{ proceso.estado }}</span>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-primary" (click)="cerrarProcesosModal()">Aceptar</button>
       </div>
     </div>
   </div>

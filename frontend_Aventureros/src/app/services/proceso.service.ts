@@ -20,6 +20,10 @@ export class ProcesoService {
     return this.http.get<Proceso[]>(`${this.apiUrl}/autor/${autorId}`);
   }
 
+  listarProcesosCompartidosConPool(poolId: number, usuarioId: number): Observable<Proceso[]> {
+    return this.http.get<Proceso[]>(`${this.apiUrl}/compartidos/${poolId}?usuarioId=${usuarioId}`);
+  }
+
   obtenerProceso(id: number): Observable<Proceso> {
     return this.http.get<Proceso>(`${this.apiUrl}/${id}`);
   }

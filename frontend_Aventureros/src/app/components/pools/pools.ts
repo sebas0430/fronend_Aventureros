@@ -5,7 +5,8 @@ import { PoolService } from '../../services/pool.service';
 import { AuthService } from '../../services/auth.service';
 import { NavbarComponent } from '../navbar/navbar';
 import { Pool } from '../../models/pool.model';
-
+import { ProcesoService } from '../../services/proceso.service';
+import { Proceso } from '../../models/proceso.model';
 @Component({
   selector: 'app-pools',
   standalone: true,
@@ -15,6 +16,7 @@ import { Pool } from '../../models/pool.model';
 })
 export class PoolsComponent implements OnInit {
   private poolService  = inject(PoolService);
+  private procesoService = inject(ProcesoService);
   private authService  = inject(AuthService);
   private fb           = inject(FormBuilder);
   private platformId   = inject(PLATFORM_ID);
@@ -26,6 +28,11 @@ export class PoolsComponent implements OnInit {
   isEditMode        = signal(false);
   isSaving          = signal(false);
   errorMsg          = signal<string | null>(null);
+
+  isProcesosModalOpen   = signal(false);
+  isLoadingProcesos     = signal(false);
+  procesosSeleccionados = signal<Proceso[]>([]);
+  poolSeleccionadoName  = signal('');
 
   // ── Estado no reactivo ─────────────────────────────────────────────────
   searchTerm      = '';
@@ -144,5 +151,29 @@ export class PoolsComponent implements OnInit {
       next: () => this.cargarPools(),
       error: (err) => console.error('Error al eliminar pool', err)
     });
+  }
+
+  verProcesos(pool: Pool): void {
+    if (!this.usuarioId) return;
+    this.poolSeleccionadoName.set(pool.nombre);
+    this.isProcesosModalOpen.set(true);
+    this.isLoadingProcesos.set(true);
+    
+    this.procesoService.listarProcesosCompartidosConPool(pool.id, this.usuarioId).subscribe({
+      next: (procesos) => {
+        this.procesosSeleccionados.set(procesos);
+        this.isLoadingProcesos.set(false);
+      },
+      error: (err) => {
+        console.error('Error al cargar procesos del pool', err);
+        this.isLoadingProcesos.set(false);
+        // Could show a toast or local error here
+      }
+    });
+  }
+
+  cerrarProcesosModal(): void {
+    this.isProcesosModalOpen.set(false);
+    this.procesosSeleccionados.set([]);
   }
 }
