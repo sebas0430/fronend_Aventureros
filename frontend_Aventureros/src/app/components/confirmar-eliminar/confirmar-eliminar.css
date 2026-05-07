@@ -1,0 +1,74 @@
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.65); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  width: 100%; max-width: 480px; margin: 16px;
+  background: linear-gradient(145deg, #1e1b4b, #1a1a2e);
+  border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 24px;
+  overflow: hidden;
+  animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+.header-title {
+  display: flex; align-items: center; gap: 10px;
+}
+.warning-icon { font-size: 1.5rem; }
+.modal-header h2 { font-size: 1.3rem; font-weight: 700; margin: 0; color: #f1f5f9; }
+
+.modal-close {
+  background: rgba(255,255,255,0.06); border: none; border-radius: 8px;
+  color: #94a3b8; font-size: 1.1rem; width: 32px; height: 32px;
+  cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+}
+.modal-close:hover { background: rgba(239,68,68,0.15); color: #f87171; }
+
+.modal-body { padding: 24px 28px; display: flex; flex-direction: column; gap: 20px; }
+.main-text { color: #e2e8f0; font-size: 1rem; line-height: 1.5; margin: 0; }
+.main-text b { color: #fff; font-weight: 700; }
+
+.warning-box {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 12px; padding: 16px;
+  color: #fca5a5;
+}
+.warning-box svg { flex-shrink: 0; margin-top: 2px; }
+.warning-box p { margin: 0; font-size: 0.88rem; line-height: 1.5; }
+
+.modal-footer {
+  display: flex; gap: 12px; justify-content: flex-end;
+  padding: 18px 28px 24px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.btn-cancelar {
+  padding: 10px 22px; border-radius: 12px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  color: #94a3b8; font-size: 0.88rem; font-weight: 500; cursor: pointer; transition: all 0.2s;
+}
+.btn-cancelar:hover:not(:disabled) { background: rgba(255,255,255,0.1); color: #e2e8f0; }
+
+.btn-confirmar {
+  padding: 10px 24px; border-radius: 12px;
+  background: linear-gradient(135deg, #ef4444, #b91c1c); border: none;
+  color: white; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+  transition: all 0.25s; box-shadow: 0 6px 20px -4px rgba(239, 68, 68, 0.5);
+}
+.btn-confirmar:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 10px 28px -4px rgba(239, 68, 68, 0.65); }
+.btn-confirmar:disabled, .btn-cancelar:disabled { opacity: 0.5; cursor: not-allowed; }

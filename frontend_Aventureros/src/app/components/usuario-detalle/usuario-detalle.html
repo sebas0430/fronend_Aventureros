@@ -1,0 +1,89 @@
+<div class="modal-overlay" (click)="cerrar.emit()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>👤 Perfil de Usuario</h2>
+      <button class="modal-close" (click)="cerrar.emit()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      @if (isLoading()) {
+        <div class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Cargando información...</p>
+        </div>
+      } @else if (errorMessage()) {
+        <div class="error-banner">
+          ⚠️ {{ errorMessage() }}
+        </div>
+      } @else if (usuario()) {
+        <div class="profile-header">
+          <div class="profile-avatar">{{ getInitials(usuario()?.correo) }}</div>
+          <div class="profile-title">
+            <h3>{{ usuario()?.correo }}</h3>
+            <span class="status-badge" [class.active]="usuario()?.activo" [class.inactive]="!usuario()?.activo">
+              {{ usuario()?.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">ID de Usuario</span>
+            <span class="info-value">#{{ usuario()?.id }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Rol Asignado</span>
+            <span class="info-value">{{ getRolLabel(usuario()?.rol) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">ID Empresa</span>
+            <span class="info-value">#{{ usuario()?.empresaId }}</span>
+          </div>
+        </div>
+
+        @if (isLoadingExtras()) {
+          <div class="loading-inline mt-4">Buscando procesos y departamentos...</div>
+        } @else {
+          <div class="extras-section mt-4">
+            <!-- Procesos -->
+            <div class="extra-block">
+              <h4>Procesos Creados ({{ procesos().length }})</h4>
+              @if (procesos().length === 0) {
+                <p class="empty-text">No ha creado ningún proceso.</p>
+              } @else {
+                <ul class="item-list">
+                  @for (p of procesos(); track p.id) {
+                    <li>
+                      <span class="item-name">{{ p.nombre }}</span>
+                      <span class="item-badge" [class]="'badge-' + p.estado.toLowerCase()">{{ p.estado }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+
+            <!-- Pools -->
+            <div class="extra-block mt-3">
+              <h4>Departamentos ({{ poolsAsignados().length }})</h4>
+              @if (poolsAsignados().length === 0) {
+                <p class="empty-text">No está asignado a ningún departamento.</p>
+              } @else {
+                <ul class="item-list">
+                  @for (asignacion of poolsAsignados(); track asignacion.pool.id) {
+                    <li>
+                      <span class="item-name">{{ asignacion.pool.nombre }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-primary" (click)="cerrar.emit()">Cerrar</button>
+    </div>
+  </div>
+</div>

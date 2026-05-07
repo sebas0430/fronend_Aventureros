@@ -3,6 +3,7 @@ import { LoginComponent } from './components/login/login';
 import { EmpleadosComponent } from './components/empleados/empleados';
 import { ProcesosComponent } from './components/procesos/procesos';
 import { ProcesoEditorComponent } from './components/proceso-editor/proceso-editor';
+import { PoolsComponent } from './components/pools/pools';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -10,5 +11,6 @@ export const routes: Routes = [
   { path: 'empleados',    component: EmpleadosComponent,     canActivate: [authGuard] },
   { path: 'procesos',     component: ProcesosComponent,      canActivate: [authGuard] },
   { path: 'editor/:id',   component: ProcesoEditorComponent, canActivate: [authGuard] },
+  { path: 'pools',        component: PoolsComponent,         canActivate: [authGuard] },
   { path: '',             redirectTo: 'login', pathMatch: 'full' }
 ];

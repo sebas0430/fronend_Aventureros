@@ -1,0 +1,32 @@
+<div class="modal-overlay" (click)="cancelar.emit()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="header-title">
+        <div class="warning-icon">⚠️</div>
+        <h2>Eliminar Miembro</h2>
+      </div>
+      <button class="modal-close" (click)="cancelar.emit()">✕</button>
+    </div>
+    
+    <div class="modal-body">
+      <p class="main-text">¿Estás completamente seguro de que deseas eliminar a <b>{{ usuario?.correo }}</b>?</p>
+      
+      <div class="warning-box">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <p>Esta acción es irreversible. Se eliminará el acceso del usuario, así como los procesos que haya creado y su historial de acciones.</p>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-cancelar" (click)="cancelar.emit()" [disabled]="guardando">Cancelar</button>
+      <button class="btn-confirmar" (click)="confirmar.emit()" [disabled]="guardando">
+        {{ guardando ? 'Eliminando...' : 'Sí, eliminar permanentemente' }}
+      </button>
+    </div>
+  </div>
+</div>

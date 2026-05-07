@@ -1,0 +1,116 @@
+<div class="modal-backdrop" (click)="onBackdropClick($event)">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="modal-title-group">
+        <div class="modal-icon">✉️</div>
+        <div>
+          <h2 id="modal-title">Invitar nuevo miembro</h2>
+          <p>Envía una invitación a un compañero de equipo</p>
+        </div>
+      </div>
+      <button class="close-btn" (click)="onCerrar()" id="btn-cerrar-modal" aria-label="Cerrar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <form class="modal-body" (ngSubmit)="onSubmit()" #inviteForm="ngForm">
+
+      <!-- Correo -->
+      <div class="form-group">
+        <label for="input-correo">Correo electrónico</label>
+        <div class="input-wrapper">
+          <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          <input
+            id="input-correo"
+            type="email"
+            class="form-input"
+            placeholder="usuario@empresa.com"
+            [(ngModel)]="correo"
+            name="correo"
+            required
+            autocomplete="off"
+          />
+        </div>
+      </div>
+
+      <!-- Rol -->
+      <div class="form-group">
+        <label for="select-rol">Rol asignado</label>
+        <div class="input-wrapper">
+          <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <select id="select-rol" class="form-input form-select" [(ngModel)]="rol" name="rol" required>
+            <option value="SOLO_LECTURA">Solo Lectura</option>
+            
+          </select>
+        </div>
+      </div>
+
+      <!-- Contraseña -->
+      <div class="form-group">
+        <label for="input-password">Contraseña</label>
+        <div class="input-wrapper">
+          <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <input
+            id="input-password"
+            type="password"
+            class="form-input"
+            placeholder="Contraseña inicial del usuario"
+            [(ngModel)]="password"
+            name="password"
+            required
+            autocomplete="new-password"
+          />
+        </div>
+      </div>
+
+      <!-- Error / Success -->
+      @if (errorMsg) {
+        <div class="alert alert-error">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {{ errorMsg }}
+        </div>
+      }
+
+      @if (successMsg) {
+        <div class="alert alert-success">{{ successMsg }}</div>
+      }
+
+      <!-- Footer buttons -->
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="onCerrar()" id="btn-cancelar-invitacion">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-submit" [disabled]="isLoading" id="btn-enviar-invitacion">
+          @if (isLoading) {
+            <span class="spinner-sm"></span> Enviando...
+          } @else {
+            ✉️ Enviar invitación
+          }
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
