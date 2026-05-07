@@ -15,11 +15,12 @@ import { NavbarComponent } from '../navbar/navbar';
 import { ConfirmarEliminarComponent } from '../confirmar-eliminar/confirmar-eliminar';
 import { UsuarioDetalleComponent } from '../usuario-detalle/usuario-detalle';
 import { AsignarPoolComponent } from '../asignar-pool/asignar-pool';
+import { EmpleadoCardComponent } from '../empleado-card/empleado-card';
 
 @Component({
   selector: 'app-empleados',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, InvitarUsuarioComponent, NavbarComponent, ConfirmarEliminarComponent, UsuarioDetalleComponent, AsignarPoolComponent],
+  imports: [CommonModule, FormsModule, InvitarUsuarioComponent, NavbarComponent, ConfirmarEliminarComponent, UsuarioDetalleComponent, AsignarPoolComponent, EmpleadoCardComponent],
   templateUrl: './empleados.html',
   styleUrl: './empleados.css'
 })
@@ -46,16 +47,28 @@ export class EmpleadosComponent implements OnInit {
   asignacionesMap = signal<Record<number, {pool: Pool, rol: RolPool}[]>>({});
 
   filtroPool = signal<string>('TODOS');
+  poolsAdministrados = signal<Set<number>>(new Set()); // IDs de los pools que administra el usuario actual
+
 
   empleadosFiltrados = computed(() => {
     const list = this.empleados();
     const fPool = this.filtroPool();
     const asignaciones = this.asignacionesMap();
+    const logueado = this.usuarioLogueado();
+    const adminPools = this.poolsAdministrados();
 
     return list.filter(emp => {
+      const susAsignaciones = asignaciones[emp.id] || [];
+
+      // Si no es admin de la empresa, solo puede ver a los de sus pools administrados
+      if (logueado && logueado.rol !== 'ADMINISTRADOR_EMPRESA') {
+        const estaEnPoolAdministrado = susAsignaciones.some(a => adminPools.has(a.pool.id));
+        if (!estaEnPoolAdministrado) return false;
+      }
+
+      // Filtro por dropdown
       if (fPool !== 'TODOS') {
         const poolId = parseInt(fPool, 10);
-        const susAsignaciones = asignaciones[emp.id] || [];
         if (!susAsignaciones.some(a => a.pool.id === poolId)) return false;
       }
       return true;
@@ -71,13 +84,70 @@ export class EmpleadosComponent implements OnInit {
       return;
     }
     
-    if (u.rol !== 'ADMINISTRADOR_EMPRESA') {
-      this.router.navigate(['/procesos']);
-      return;
-    }
-    
     this.usuarioLogueado.set(u);
-    this.cargarEmpleados(u);
+    
+    if (u.rol === 'ADMINISTRADOR_EMPRESA') {
+      this.cargarEmpleados(u);
+    } else {
+      this.verificarPermisosPoolAdmin(u);
+    }
+  }
+
+  private verificarPermisosPoolAdmin(user: Usuario) {
+    this.isLoading.set(true);
+    this.poolService.listarPorEmpresa(user.empresaId).subscribe({
+      next: (pools) => {
+        if (pools.length === 0) {
+          this.router.navigate(['/procesos']);
+          return;
+        }
+
+        let pending = pools.length;
+        const administrados = new Set<number>();
+
+        pools.forEach(pool => {
+          this.rolPoolService.obtenerRolDeUsuario(user.id, pool.id).subscribe({
+            next: (asignacion) => {
+              if (asignacion) {
+                // Obtener detalles del rol para saber si es administrador
+                this.rolPoolService.listarRolesPorPool(pool.id, user.id).subscribe({
+                  next: (roles) => {
+                    const rol = roles.find(r => r.id === asignacion.rolPoolId);
+                    if (rol && rol.nombre.toLowerCase().includes('administrador')) {
+                      administrados.add(pool.id);
+                    }
+                    pending--;
+                    this.checkAdminComplete(pending, administrados, user);
+                  },
+                  error: () => { pending--; this.checkAdminComplete(pending, administrados, user); }
+                });
+              } else {
+                pending--;
+                this.checkAdminComplete(pending, administrados, user);
+              }
+            },
+            error: () => {
+              pending--;
+              this.checkAdminComplete(pending, administrados, user);
+            }
+          });
+        });
+      },
+      error: () => {
+        this.router.navigate(['/procesos']);
+      }
+    });
+  }
+
+  private checkAdminComplete(pending: number, administrados: Set<number>, user: Usuario) {
+    if (pending === 0) {
+      if (administrados.size > 0) {
+        this.poolsAdministrados.set(administrados);
+        this.cargarEmpleados(user);
+      } else {
+        this.router.navigate(['/procesos']);
+      }
+    }
   }
 
   private cargarEmpleados(user: Usuario) {
@@ -265,5 +335,26 @@ export class EmpleadosComponent implements OnInit {
 
   getInitials(correo: string): string {
     return correo.substring(0, 2).toUpperCase();
+  }
+
+  removerPool(empId: number, poolId: number) {
+    const admin = this.usuarioLogueado();
+    if (!admin) return;
+
+    this.rolPoolService.removerAsignacion(empId, poolId, admin.id).subscribe({
+      next: () => {
+        this.asignacionesMap.update(map => {
+          const newMap = { ...map };
+          if (newMap[empId]) {
+            newMap[empId] = newMap[empId].filter(a => a.pool.id !== poolId);
+          }
+          return newMap;
+        });
+      },
+      error: (err) => {
+        console.error('Error al remover pool:', err);
+        this.errorMessage.set('No se pudo quitar el departamento.');
+      }
+    });
   }
 }
