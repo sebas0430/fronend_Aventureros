@@ -6,14 +6,14 @@
     </div>
 
     <div class="modal-body">
-      <p class="subtitle">Asigna un departamento (Pool) y permisos específicos a <strong>{{ usuarioDestino.correo }}</strong>.</p>
+      <p class="subtitle">Asigna un departamento y permisos específicos a <strong>{{ usuarioDestino.correo }}</strong>.</p>
 
       @if (errorMessage()) {
         <div class="error-banner">⚠️ {{ errorMessage() }}</div>
       }
 
       <div class="form-group">
-        <label>Departamento (Pool)</label>
+        <label>Departamento</label>
         @if (isLoadingPools()) {
           <div class="loading-inline">Cargando departamentos...</div>
         } @else {

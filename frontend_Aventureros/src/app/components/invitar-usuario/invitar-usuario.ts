@@ -23,7 +23,7 @@ export class InvitarUsuarioComponent {
   cerrar = output<void>();
 
   correo   = '';
-  rol      = 'EMPLEADO';
+  rol      = 'SOLO_LECTURA';
   password = '';
 
   isLoading = false;
@@ -61,7 +61,7 @@ export class InvitarUsuarioComponent {
         this.isLoading  = false;
         this.correo     = '';
         this.password   = '';
-        this.rol        = 'EMPLEADO';
+        this.rol        = 'SOLO_LECTURA';
         this.invitacionExitosa.emit();
       },
       error: (err) => {

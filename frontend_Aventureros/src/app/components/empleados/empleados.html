@@ -102,19 +102,6 @@
 
               <!-- Admin actions -->
               <div class="card-footer">
-                <!-- Cambiar rol -->
-                <div class="rol-selector-group">
-                  <label [for]="'select-rol-' + emp.id" class="rol-label">Rol</label>
-                  <select
-                    [id]="'select-rol-' + emp.id"
-                    class="rol-select"
-                    [value]="emp.rol"
-                    (change)="cambiarRol(emp, $any($event.target).value)">
-                    <option value="EDITOR">Editor</option>
-                    <option value="SOLO_LECTURA">Solo Lectura</option>
-                    <option value="ADMINISTRADOR_EMPRESA">Administrador</option>
-                  </select>
-                </div>
                 <!-- Activar / desactivar y Eliminar -->
                 <div class="card-actions">
                   <button
