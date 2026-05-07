@@ -4,8 +4,8 @@
     <span class="brand-name">{{ nombreEmpresa() }}</span>
   </div>
   <div class="navbar-center">
+    <a routerLink="/empleados" class="nav-link" routerLinkActive="active">👥 Equipo</a>
     @if (usuarioLogueado()?.rol === 'ADMINISTRADOR_EMPRESA') {
-      <a routerLink="/empleados" class="nav-link" routerLinkActive="active">👥 Equipo</a>
       <a routerLink="/pools" class="nav-link" routerLinkActive="active">🏢 Pools</a>
     }
     <a routerLink="/procesos" class="nav-link" routerLinkActive="active">📋 Procesos</a>
