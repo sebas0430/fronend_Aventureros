@@ -49,4 +49,4 @@ jobs:
         run: sudo microk8s kubectl apply -f frontend_Aventureros/k8s/deployment.yaml
 
       - name: Restart Kubernetes deployment
-        run: sudo microk8s kubectl rollout restart deployment/fronend-aventureros -n aventureros
+        run: sudo microk8s kubectl rollout restart deployment/fronend-aventureros -n grupo13
