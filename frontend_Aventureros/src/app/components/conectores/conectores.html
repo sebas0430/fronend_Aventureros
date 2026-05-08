@@ -1,0 +1,105 @@
+<app-navbar></app-navbar>
+<div class="con-page">
+  <header class="con-header">
+    <div>
+      <h1 class="con-title">Conectores Externos</h1>
+      <p class="con-subtitle">Configura integraciones con email, webhooks y colas de mensajes.</p>
+    </div>
+    <button class="btn-primary" (click)="abrirCrear()">+ Nuevo Conector</button>
+  </header>
+
+  <div class="con-error" *ngIf="errorMsg()">{{ errorMsg() }}</div>
+  <div class="con-loading" *ngIf="isLoading()"><span class="spinner"></span> Cargando...</div>
+
+  <div class="con-empty" *ngIf="!isLoading() && conectores().length === 0">
+    <div class="empty-icon">📡</div>
+    <p>No hay conectores configurados.</p>
+    <button class="btn-primary" (click)="abrirCrear()">Crear primer conector</button>
+  </div>
+
+  <div class="con-grid" *ngIf="!isLoading() && conectores().length > 0">
+    <div class="con-card" *ngFor="let c of conectores()">
+      <div class="con-card-top">
+        <span class="tipo-badge">{{ getTipoIcon(c.tipo) }} {{ c.tipo }}</span>
+        <span class="con-reintentos">🔄 {{ c.maxReintentos }} reintentos</span>
+      </div>
+      <h3 class="con-name">{{ c.nombre }}</h3>
+      <p class="con-destino">{{ c.destino }}</p>
+      <div class="con-actions">
+        <button class="btn-send" (click)="abrirEnvio(c)">📤 Enviar</button>
+        <button class="btn-edit" (click)="abrirEditar(c)">✏️</button>
+        <button class="btn-delete" (click)="pedirEliminar(c)">🗑️</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Crear/Editar -->
+<div class="modal-overlay" *ngIf="mostrarModal()" (click)="cerrarModal()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <h2 class="modal-title">{{ modoEdicion() ? 'Editar Conector' : 'Nuevo Conector' }}</h2>
+    <label class="modal-label">Nombre *</label>
+    <input class="modal-input" type="text" [value]="form().nombre"
+      (input)="setFormField('nombre', $any($event.target).value)" placeholder="ej. Email SMTP Empresa" />
+    <label class="modal-label">Tipo *</label>
+    <select class="modal-input" [value]="form().tipo" (change)="setFormField('tipo', $any($event.target).value)">
+      <option *ngFor="let t of tiposConector" [value]="t">{{ t }}</option>
+    </select>
+    <label class="modal-label">Destino (URL / Host / Queue) *</label>
+    <input class="modal-input" type="text" [value]="form().destino"
+      (input)="setFormField('destino', $any($event.target).value)" placeholder="https://... o smtp://..." />
+    <label class="modal-label">Puerto</label>
+    <input class="modal-input" type="number" [value]="form().puerto"
+      (input)="setFormField('puerto', +$any($event.target).value)" placeholder="443" />
+    <label class="modal-label">Credencial / Secreto</label>
+    <input class="modal-input" type="text" [value]="form().credencialRef"
+      (input)="setFormField('credencialRef', $any($event.target).value)" placeholder="Nombre del secreto en el vault" />
+    <label class="modal-label">Máx. reintentos</label>
+    <input class="modal-input" type="number" [value]="form().maxReintentos" min="0" max="10"
+      (input)="setFormField('maxReintentos', +$any($event.target).value)" />
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="cerrarModal()">Cancelar</button>
+      <button class="btn-primary" (click)="guardar()" [disabled]="guardando()">
+        {{ guardando() ? 'Guardando...' : (modoEdicion() ? 'Guardar' : 'Crear') }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Eliminar -->
+<div class="modal-overlay" *ngIf="conectorAEliminar()" (click)="cancelarEliminar()">
+  <div class="modal-box modal-danger" (click)="$event.stopPropagation()">
+    <div class="danger-icon">⚠️</div>
+    <h2 class="modal-title">¿Eliminar conector?</h2>
+    <p class="danger-msg">Se eliminará <strong>{{ conectorAEliminar()?.nombre }}</strong>.</p>
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="cancelarEliminar()">Cancelar</button>
+      <button class="btn-danger" (click)="confirmarEliminar()" [disabled]="eliminando()">
+        {{ eliminando() ? 'Eliminando...' : 'Eliminar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Enviar -->
+<div class="modal-overlay" *ngIf="mostrarEnvio()" (click)="cerrarEnvio()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <h2 class="modal-title">📤 Enviar Notificación</h2>
+    <p class="modal-sub">Conector: <strong>{{ conectorEnvio()?.nombre }}</strong></p>
+    <label class="modal-label">ID del proceso *</label>
+    <input class="modal-input" type="number" [value]="formEnvio().procesoId"
+      (input)="formEnvio.update(f => ({ ...f, procesoId: $any($event.target).value }))" placeholder="ID del proceso" />
+    <label class="modal-label">Payload (JSON)</label>
+    <textarea class="modal-textarea" rows="4" [value]="formEnvio().payload"
+      (input)="formEnvio.update(f => ({ ...f, payload: $any($event.target).value }))"></textarea>
+    <div class="envio-resultado" *ngIf="resultadoEnvio()">
+      ✅ Enviado. Estado: <strong>{{ resultadoEnvio()?.estado }}</strong>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="cerrarEnvio()">Cerrar</button>
+      <button class="btn-primary" (click)="enviar()" [disabled]="enviando()">
+        {{ enviando() ? 'Enviando...' : 'Enviar' }}
+      </button>
+    </div>
+  </div>
+</div>

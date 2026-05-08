@@ -1,0 +1,95 @@
+<app-navbar></app-navbar>
+<div class="rpa-page">
+  <header class="rpa-header">
+    <div>
+      <h1 class="rpa-title">Roles del Pool</h1>
+      <p class="rpa-subtitle">Define permisos específicos por rol dentro de cada Pool de la empresa.</p>
+    </div>
+  </header>
+
+  <div class="rpa-error" *ngIf="errorMsg()">{{ errorMsg() }}</div>
+
+  <div class="rpa-layout">
+    <!-- Panel Pools -->
+    <aside class="pools-panel">
+      <h2 class="panel-title">Pools</h2>
+      <div class="rpa-loading" *ngIf="isLoadingPools()"><span class="spinner"></span></div>
+      <div class="pool-item" *ngFor="let pool of pools()"
+        [class.active]="poolSeleccionado()?.id === pool.id"
+        (click)="seleccionarPool(pool)">
+        <span>🗂</span> {{ pool.nombre }}
+      </div>
+      <div class="no-data" *ngIf="!isLoadingPools() && pools().length === 0">Sin pools.</div>
+    </aside>
+
+    <!-- Panel Roles -->
+    <main class="roles-panel" *ngIf="poolSeleccionado(); else sinPool">
+      <div class="roles-panel-header">
+        <h2 class="panel-title2">Roles en <em>{{ poolSeleccionado()!.nombre }}</em></h2>
+        <button class="btn-primary" (click)="abrirCrear()">+ Nuevo Rol</button>
+      </div>
+
+      <div class="rpa-loading" *ngIf="isLoadingRoles()"><span class="spinner"></span> Cargando...</div>
+
+      <div class="roles-empty" *ngIf="!isLoadingRoles() && roles().length === 0">
+        <div>🔑</div><p>Sin roles en este pool.</p>
+      </div>
+
+      <div class="roles-grid" *ngIf="!isLoadingRoles() && roles().length > 0">
+        <div class="rol-card" *ngFor="let rol of roles()">
+          <div class="rol-header">
+            <div class="rol-avatar">{{ rol.nombre[0] }}</div>
+            <div>
+              <div class="rol-name">{{ rol.nombre }}</div>
+              <div class="rol-desc" *ngIf="rol.descripcion">{{ rol.descripcion }}</div>
+            </div>
+          </div>
+          <div class="permisos-grid">
+            <div class="permiso-badge" [class.active]="rol.permisoCrearProceso">📄 Crear</div>
+            <div class="permiso-badge" [class.active]="rol.permisoEditarProceso">✏️ Editar</div>
+            <div class="permiso-badge" [class.active]="rol.permisoEliminarProceso">🗑️ Eliminar</div>
+            <div class="permiso-badge" [class.active]="rol.permisoPublicarProceso">📢 Publicar</div>
+            <div class="permiso-badge" [class.active]="rol.permisoGestionarRoles">🔑 Roles</div>
+          </div>
+          <div class="rol-actions">
+            <button class="btn-edit" (click)="abrirEditar(rol)">✏️ Editar</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <ng-template #sinPool>
+      <main class="roles-panel placeholder">
+        <div>👈</div>
+        <p>Selecciona un Pool para ver sus roles.</p>
+      </main>
+    </ng-template>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" *ngIf="mostrarModal()" (click)="cerrarModal()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <h2 class="modal-title">{{ modoEdicion() ? 'Editar Rol' : 'Nuevo Rol de Pool' }}</h2>
+    <label class="modal-label">Nombre *</label>
+    <input class="modal-input" type="text" [value]="form().nombre"
+      (input)="form.update(f => ({ ...f, nombre: $any($event.target).value }))" />
+    <label class="modal-label">Descripción</label>
+    <textarea class="modal-textarea" rows="2" [value]="form().descripcion"
+      (input)="form.update(f => ({ ...f, descripcion: $any($event.target).value }))"></textarea>
+    <div class="permisos-form">
+      <label class="perm-label">Permisos:</label>
+      <label class="perm-check"><input type="checkbox" [checked]="form().permisoCrearProceso" (change)="setCheckbox('permisoCrearProceso', $any($event.target).checked)"> Crear Proceso</label>
+      <label class="perm-check"><input type="checkbox" [checked]="form().permisoEditarProceso" (change)="setCheckbox('permisoEditarProceso', $any($event.target).checked)"> Editar Proceso</label>
+      <label class="perm-check"><input type="checkbox" [checked]="form().permisoEliminarProceso" (change)="setCheckbox('permisoEliminarProceso', $any($event.target).checked)"> Eliminar Proceso</label>
+      <label class="perm-check"><input type="checkbox" [checked]="form().permisoPublicarProceso" (change)="setCheckbox('permisoPublicarProceso', $any($event.target).checked)"> Publicar Proceso</label>
+      <label class="perm-check"><input type="checkbox" [checked]="form().permisoGestionarRoles" (change)="setCheckbox('permisoGestionarRoles', $any($event.target).checked)"> Gestionar Roles</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="cerrarModal()">Cancelar</button>
+      <button class="btn-primary" (click)="guardar()" [disabled]="guardando() || !form().nombre.trim()">
+        {{ guardando() ? 'Guardando...' : (modoEdicion() ? 'Guardar' : 'Crear rol') }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -7,8 +7,13 @@
     <a routerLink="/empleados" class="nav-link" routerLinkActive="active">👥 Equipo</a>
     @if (usuarioLogueado()?.rol === 'ADMINISTRADOR_EMPRESA') {
       <a routerLink="/pools" class="nav-link" routerLinkActive="active">🏢 Pools</a>
+      <a routerLink="/roles-pool" class="nav-link" routerLinkActive="active">🛡️ Roles Pool</a>
     }
     <a routerLink="/procesos" class="nav-link" routerLinkActive="active">📋 Procesos</a>
+    <a routerLink="/roles-proceso" class="nav-link" routerLinkActive="active">🔑 Roles Proceso</a>
+    <a routerLink="/lanes" class="nav-link" routerLinkActive="active">🛣️ Lanes</a>
+    <a routerLink="/mensajes" class="nav-link" routerLinkActive="active">💬 Mensajes</a>
+    <a routerLink="/conectores" class="nav-link" routerLinkActive="active">🔌 Conectores</a>
   </div>
 
   @if (usuarioLogueado()) {
