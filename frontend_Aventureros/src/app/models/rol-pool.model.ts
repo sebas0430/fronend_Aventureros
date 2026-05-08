@@ -6,6 +6,8 @@ export interface RolPool {
   permisoEditarProceso: boolean;
   permisoEliminarProceso: boolean;
   permisoPublicarProceso: boolean;
+  permisoGestionarRoles: boolean;
+  descripcion?: string;
 }
 
 export interface AsignacionRolDTO {

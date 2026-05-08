@@ -70,11 +70,11 @@
     <label class="modal-label">Nombre *</label>
     <input class="modal-input" type="text" placeholder="ej. Gerencia de TI"
       [value]="form().nombre"
-      (input)="form.update(f => ({ ...f, nombre: $any($event.target).value }))" />
+      (input)="setFormField('nombre', $any($event.target).value)" />
     <label class="modal-label">Descripción</label>
     <textarea class="modal-textarea" rows="3" placeholder="Rol o área que representa este lane"
       [value]="form().descripcion"
-      (input)="form.update(f => ({ ...f, descripcion: $any($event.target).value }))"></textarea>
+      (input)="setFormField('descripcion', $any($event.target).value)"></textarea>
     <div class="modal-error" *ngIf="errorMsg()">{{ errorMsg() }}</div>
     <div class="modal-actions">
       <button class="btn-secondary" (click)="cerrarModal()">Cancelar</button>

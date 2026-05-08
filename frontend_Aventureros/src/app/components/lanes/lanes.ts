@@ -127,4 +127,8 @@ export class LanesComponent implements OnInit {
       error: (err) => { this.errorMsg.set(err?.error?.message || 'Error al eliminar.'); this.eliminando.set(false); this.laneAEliminar.set(null); }
     });
   }
+
+  setFormField(campo: string, valor: any) {
+    this.form.update(f => ({ ...f, [campo]: valor }));
+  }
 }

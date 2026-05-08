@@ -128,4 +128,8 @@ export class ConectoresComponent implements OnInit {
   setFormField(campo: string, valor: any) {
     this.form.update(f => ({ ...f, [campo]: valor }));
   }
+
+  setEnvioField(campo: string, valor: any) {
+    this.formEnvio.update(f => ({ ...f, [campo]: valor }));
+  }
 }

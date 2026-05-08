@@ -36,12 +36,12 @@
       </div>
 
       <!-- Uso en procesos -->
-      <div class="rp-uso" *ngIf="rol.usoEnProcesos?.length > 0">
+      <div class="rp-uso" *ngIf="rol.usoEnProcesos.length > 0">
         <span class="rp-uso-label">Usado en:</span>
         <div class="rp-uso-list">
           <div class="rp-uso-item" *ngFor="let proc of rol.usoEnProcesos">
             <span class="rp-uso-proceso">📋 {{ proc.procesoNombre }}</span>
-            <div class="rp-uso-actividades" *ngIf="proc.actividades?.length > 0">
+            <div class="rp-uso-actividades" *ngIf="proc.actividades.length > 0">
               <span class="rp-uso-act" *ngFor="let act of proc.actividades">
                 ▸ {{ act.actividadNombre }} <em>({{ act.tipoActividad }})</em>
               </span>
@@ -55,7 +55,7 @@
 
       <div class="rp-stats">
         <span class="rp-stat">
-          <strong>{{ rol.usoEnProcesos?.length ?? 0 }}</strong> procesos
+          <strong>{{ rol.usoEnProcesos.length }}</strong> procesos
         </span>
         <span class="rp-stat">
           <strong>{{ totalActividades(rol) }}</strong> actividades
@@ -65,8 +65,8 @@
       <div class="rp-card-actions">
         <button class="btn-edit" (click)="abrirEditar(rol)">✏️ Editar</button>
         <button class="btn-delete" (click)="pedirEliminar(rol)"
-          [disabled]="(rol.usoEnProcesos?.length ?? 0) > 0"
-          [title]="(rol.usoEnProcesos?.length ?? 0) > 0 ? 'No se puede eliminar: está en uso' : 'Eliminar rol'">
+          [disabled]="rol.usoEnProcesos.length > 0"
+          [title]="rol.usoEnProcesos.length > 0 ? 'No se puede eliminar: está en uso' : 'Eliminar rol'">
           🗑️ Eliminar
         </button>
       </div>
@@ -82,12 +82,12 @@
     <label class="modal-label">Nombre del rol *</label>
     <input class="modal-input" type="text" placeholder="ej. Analista de Calidad"
       [value]="form().nombre"
-      (input)="form.update(f => ({ ...f, nombre: $any($event.target).value }))" />
+      (input)="setFormField('nombre', $any($event.target).value)" />
 
     <label class="modal-label">Descripción</label>
     <textarea class="modal-textarea" rows="3" placeholder="¿Qué responsabilidades tiene este rol?"
       [value]="form().descripcion"
-      (input)="form.update(f => ({ ...f, descripcion: $any($event.target).value }))"></textarea>
+      (input)="setFormField('descripcion', $any($event.target).value)"></textarea>
 
     <div class="modal-error" *ngIf="errorMsg()">{{ errorMsg() }}</div>
 

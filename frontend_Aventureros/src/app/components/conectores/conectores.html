@@ -88,10 +88,10 @@
     <p class="modal-sub">Conector: <strong>{{ conectorEnvio()?.nombre }}</strong></p>
     <label class="modal-label">ID del proceso *</label>
     <input class="modal-input" type="number" [value]="formEnvio().procesoId"
-      (input)="formEnvio.update(f => ({ ...f, procesoId: $any($event.target).value }))" placeholder="ID del proceso" />
+      (input)="setEnvioField('procesoId', $any($event.target).value)" placeholder="ID del proceso" />
     <label class="modal-label">Payload (JSON)</label>
     <textarea class="modal-textarea" rows="4" [value]="formEnvio().payload"
-      (input)="formEnvio.update(f => ({ ...f, payload: $any($event.target).value }))"></textarea>
+      (input)="setEnvioField('payload', $any($event.target).value)"></textarea>
     <div class="envio-resultado" *ngIf="resultadoEnvio()">
       ✅ Enviado. Estado: <strong>{{ resultadoEnvio()?.estado }}</strong>
     </div>

@@ -73,10 +73,10 @@
     <h2 class="modal-title">{{ modoEdicion() ? 'Editar Rol' : 'Nuevo Rol de Pool' }}</h2>
     <label class="modal-label">Nombre *</label>
     <input class="modal-input" type="text" [value]="form().nombre"
-      (input)="form.update(f => ({ ...f, nombre: $any($event.target).value }))" />
+      (input)="setFormField('nombre', $any($event.target).value)" />
     <label class="modal-label">Descripción</label>
     <textarea class="modal-textarea" rows="2" [value]="form().descripcion"
-      (input)="form.update(f => ({ ...f, descripcion: $any($event.target).value }))"></textarea>
+      (input)="setFormField('descripcion', $any($event.target).value)"></textarea>
     <div class="permisos-form">
       <label class="perm-label">Permisos:</label>
       <label class="perm-check"><input type="checkbox" [checked]="form().permisoCrearProceso" (change)="setCheckbox('permisoCrearProceso', $any($event.target).checked)"> Crear Proceso</label>

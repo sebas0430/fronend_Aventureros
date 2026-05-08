@@ -139,4 +139,8 @@ export class RolesProcesoComponent implements OnInit {
   totalActividades(rol: RolProcesoDetalle): number {
     return rol.usoEnProcesos?.reduce((acc, p) => acc + (p.actividades?.length ?? 0), 0) ?? 0;
   }
+
+  setFormField(campo: string, valor: any) {
+    this.form.update(f => ({ ...f, [campo]: valor }));
+  }
 }

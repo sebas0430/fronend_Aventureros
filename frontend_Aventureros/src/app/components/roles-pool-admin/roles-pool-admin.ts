@@ -109,4 +109,8 @@ export class RolesPoolAdminComponent implements OnInit {
   setCheckbox(campo: string, valor: boolean) {
     this.form.update(f => ({ ...f, [campo]: valor }));
   }
+
+  setFormField(campo: string, valor: any) {
+    this.form.update(f => ({ ...f, [campo]: valor }));
+  }
 }

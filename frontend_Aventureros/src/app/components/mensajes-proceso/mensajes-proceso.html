@@ -41,7 +41,7 @@
       <div class="eventos-list" *ngIf="!isLoadingEventos() && eventos().length > 0">
         <div class="evento-card" *ngFor="let ev of eventos()">
           <div class="evento-top">
-            <span class="tipo-badge" [ngClass]="getTipoColor(ev.tipo ?? '')">
+            <span class="tipo-badge" [ngClass]="getTipoColor(ev.tipo)">
               {{ ev.tipo === 'THROW' ? '📤 THROW' : '📥 CATCH' }}
             </span>
             <span class="evento-fecha">{{ ev.createdAt | date:'dd/MM/yy' }}</span>
