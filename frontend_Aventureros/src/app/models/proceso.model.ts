@@ -31,12 +31,15 @@ export interface NodoBpmn {
   x: number;
   y: number;
   actividadId?: number; // Vínculo con la entidad Actividad en DB
+  gatewayType?: 'exclusive' | 'parallel' | 'inclusive';
 }
 
 export interface ConexionBpmn {
   id: string;
   desde: string;
   hasta: string;
+  label?: string;
+  condicion?: string;
 }
 
 export interface DefinicionBpmn {

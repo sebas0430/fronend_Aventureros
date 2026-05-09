@@ -29,6 +29,7 @@
   border-bottom: 1px solid rgba(255,255,255,0.07);
   backdrop-filter: blur(8px);
   gap: 16px;
+  z-index: 200;
 }
 
 .back-btn {
@@ -65,7 +66,7 @@
 .btn-guardar:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* ─── Body ────────────────────────────────────────── */
-.editor-body { display: flex; flex: 1; overflow: hidden; }
+.editor-body { display: flex; flex: 1; overflow: hidden; position: relative; }
 
 /* ─── Toolbox ─────────────────────────────────────── */
 .toolbox {
@@ -74,6 +75,7 @@
   border-right: 1px solid rgba(255,255,255,0.06);
   padding: 16px 10px; overflow-y: auto;
   display: flex; flex-direction: column; gap: 4px;
+  z-index: 10;
 }
 .toolbox-title {
   font-size: 0.68rem; font-weight: 700; letter-spacing: 0.8px;
@@ -195,6 +197,10 @@ canvas {
   display: flex; flex-direction: column; gap: 20px;
 }
 
+.prop-divider {
+  height: 1px; background: rgba(255, 255, 255, 0.05); margin: 10px 0;
+}
+
 .prop-group { display: flex; flex-direction: column; gap: 8px; }
 
 .prop-group label {
@@ -218,10 +224,20 @@ canvas {
   transform: translateY(-1px);
 }
 
-/* Styling the options as much as possible */
-.prop-group select option {
-  background: #1e293b;
-  color: #f1f5f9;
+.gateway-types-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+}
+.gateway-types-grid button {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px; border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8; cursor: pointer; transition: all 0.2s;
+  font-weight: 800;
+}
+.gateway-types-grid button small { font-weight: 500; font-size: 0.65rem; }
+.gateway-types-grid button:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+.gateway-types-grid button.active {
+  background: rgba(99, 102, 241, 0.15); border-color: #6366f1; color: #a5b4fc;
 }
 
 .props-actions { margin-top: 10px; }
@@ -234,6 +250,19 @@ canvas {
 }
 .btn-save-props:hover:not(:disabled) { background: #4338ca; transform: translateY(-1px); }
 .btn-save-props:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.sidebar-footer {
+  margin-top: auto; padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.btn-delete-node {
+  width: 100%; padding: 10px; border-radius: 10px;
+  background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171; font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-delete-node:hover { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; }
 
 .no-props-msg, .empty-props {
   height: 100%; display: flex; align-items: center; justify-content: center;
