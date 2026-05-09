@@ -164,3 +164,25 @@
 .login-footer a:hover {
   color: #a5b4fc;
 }
+.register-company-link {
+  margin-top: 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-register-company {
+  border: none;
+  padding: 12px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+.btn-register-company:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}

@@ -13,4 +13,10 @@ export class EmpresaService {
   obtenerEmpresa(id: number): Observable<Empresa> {
     return this.http.get<Empresa>(`${this.apiUrl}/${id}`);
   }
+  registrarEmpresa(data: any) {
+  return this.http.post(`${this.apiUrl}/empresas`, data);
+  }
+  editarEmpresa(id: number, data: any) {
+  return this.http.put(`${this.apiUrl}/empresas/${id}`, data);
+  }
 }

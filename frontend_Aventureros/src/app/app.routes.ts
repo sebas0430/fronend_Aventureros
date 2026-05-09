@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+import type { Routes } from '@angular/router';
 import { LoginComponent } from './components/login/login';
 import { EmpleadosComponent } from './components/empleados/empleados';
 import { ProcesosComponent } from './components/procesos/procesos';
@@ -12,5 +12,15 @@ export const routes: Routes = [
   { path: 'procesos',     component: ProcesosComponent,      canActivate: [authGuard] },
   { path: 'editor/:id',   component: ProcesoEditorComponent, canActivate: [authGuard] },
   { path: 'pools',        component: PoolsComponent,         canActivate: [authGuard] },
+  { path: 'registro-empresa', loadComponent: () =>
+    import('./components/registro-empresa/registro-empresa')
+      .then(m => m.RegistroEmpresa)
+  },
+  {
+  path: 'configuracion-empresa',
+  loadComponent: () =>
+    import('./components/configuracion-empresa/configuracion-empresa')
+      .then(m => m.ConfiguracionEmpresa)
+},
   { path: '',             redirectTo: 'login', pathMatch: 'full' }
 ];
