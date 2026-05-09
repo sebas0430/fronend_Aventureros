@@ -59,17 +59,16 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
   private panStartX = 0;
   private panStartY = 0;
 
-
   // ── Properties Panel ────────────────────────────────────────
   actividadesProceso = signal<ActividadRegistroDTO[]>([]);
   actividadSeleccionada = signal<ActividadRegistroDTO | null>(null);
   cargandoPropiedades = signal(false);
   rolesGlobales = Object.values(RolGlobal);
   tiposActividad = ['TASK', 'SERVICE', 'USER', 'MANUAL'];
+
   // Selected element derived state
   selectedNodo = computed(() => this.nodos().find(n => n.id === this.selectedId()) || null);
   selectedConexion = computed(() => this.conexiones().find(c => c.id === this.selectedId()) || null);
-
 
   readonly TOOLS: { id: NodoBpmnTipo | 'cursor' | 'conector'; label: string; icon: string }[] = [
     { id: 'cursor',    label: 'Seleccionar',  icon: '↖' },
@@ -174,82 +173,31 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   private drawNodo(ctx: CanvasRenderingContext2D, n: NodoBpmn) {
-    const isSelected = this.selectedId() === n.id;
-    const isHovered = this.hoveredId === n.id;
+    const hovered    = this.hoveredId === n.id;
+    const selected   = this.selectedId() === n.id;
+    const isConectando = this.conectandoDesde === n.id;
+    ctx.save();
 
-    ctx.shadowBlur = isSelected ? 15 : isHovered ? 8 : 0;
-    ctx.shadowColor = isSelected ? '#4f46e5' : 'rgba(255,255,255,0.2)';
-
-    switch (n.tipo) {
-      case 'inicio': this.drawCircle(ctx, n.x + 30, n.y + 30, 24, '#22c55e', isSelected); break;
-      case 'fin': this.drawCircle(ctx, n.x + 30, n.y + 30, 24, '#ef4444', isSelected, true); break;
-      case 'actividad': this.drawRect(ctx, n.x, n.y, 160, 60, 10, '#4f46e5', isSelected); break;
-      case 'gateway': this.drawDiamond(ctx, n.x + 40, n.y + 30, 34, '#f59e0b', isSelected); break;
+    // Halo de selección
+    if (selected) {
+      const { cx, cy } = this.getNodoCenter(n);
+      ctx.beginPath();
+      if (n.tipo === 'inicio' || n.tipo === 'fin') {
+        ctx.arc(cx, cy, 36, 0, Math.PI * 2);
+      } else if (n.tipo === 'actividad') {
+        ctx.roundRect(n.x - 6, n.y - 6, 172, 72, 16);
+      } else {
+        const s = 44;
+        ctx.moveTo(cx, cy - s); ctx.lineTo(cx + s, cy);
+        ctx.lineTo(cx, cy + s); ctx.lineTo(cx - s, cy);
+        ctx.closePath();
+      }
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([5, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
     }
-
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = isSelected ? '#fff' : '#cbd5e1';
-    ctx.font = `500 ${n.tipo === 'actividad' ? '12px' : '11px'} 'Inter', sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    if (n.tipo === 'actividad') {
-      this.drawWrappedText(ctx, n.label, n.x + 80, n.y + 30, 140, 14);
-    } else {
-      ctx.fillText(n.label, n.x + (n.tipo==='gateway'?40:30), n.y + (n.tipo==='gateway'?75:65));
-    }
-  }
-
-  private drawCircle(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, color: string, sel: boolean, double = false) {
-    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fillStyle = color + '20'; ctx.fill();
-    ctx.strokeStyle = color; ctx.lineWidth = sel ? 3 : 2; ctx.stroke();
-    if (double) {
-      ctx.beginPath(); ctx.arc(x, y, r - 5, 0, Math.PI * 2); ctx.stroke();
-    }
-  }
-
-  private drawRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, color: string, sel: boolean) {
-    ctx.beginPath();
-    ctx.roundRect(x, y, w, h, r);
-    ctx.fillStyle = 'rgba(30,41,59,0.7)'; ctx.fill();
-    ctx.strokeStyle = sel ? '#6366f1' : 'rgba(255,255,255,0.15)';
-    ctx.lineWidth = sel ? 3 : 1.5; ctx.stroke();
-  }
-
-  private drawDiamond(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string, sel: boolean) {
-    ctx.beginPath();
-    ctx.moveTo(x, y - size); ctx.lineTo(x + size, y); ctx.lineTo(x, y + size); ctx.lineTo(x - size, y);
-    ctx.closePath();
-    ctx.fillStyle = color + '25'; ctx.fill();
-    ctx.strokeStyle = color; ctx.lineWidth = sel ? 3 : 2.5; ctx.stroke();
-  }
-
-  private drawConexion(ctx: CanvasRenderingContext2D, c: ConexionBpmn) {
-    const from = this.nodos().find(n => n.id === c.desde);
-    const to = this.nodos().find(n => n.id === c.hasta);
-    if (!from || !to) return;
-
-    const start = this.getPoint(from, to);
-    const end = this.getPoint(to, from);
-
-    ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y);
-    ctx.strokeStyle = 'rgba(148,163,184,0.4)'; ctx.lineWidth = 2; ctx.stroke();
-    this.drawArrowhead(ctx, end.x, end.y, Math.atan2(end.y - start.y, end.x - start.x));
-  }
-
-  private getPoint(n: NodoBpmn, target: {x:number, y:number}) {
-    if (n.tipo === 'actividad') {
-      const cx = n.x + 80, cy = n.y + 30;
-      if (Math.abs(target.x - cx) > Math.abs(target.y - cy)) return { x: target.x > cx ? n.x + 160 : n.x, y: cy };
-      return { x: cx, y: target.y > cy ? n.y + 60 : n.y };
-    }
-<<<<<<< HEAD
-    const offset = n.tipo === 'gateway' ? 40 : 30;
-    const r = n.tipo === 'gateway' ? 34 : 24;
-    const angle = Math.atan2(target.y - (n.y + 30), target.x - (n.x + offset));
-    return { x: n.x + offset + Math.cos(angle) * r, y: n.y + 30 + Math.sin(angle) * r };
-=======
 
     switch (n.tipo) {
       case 'inicio':
@@ -277,40 +225,77 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
         break;
     }
     ctx.restore();
->>>>>>> f97fe84247bedc62d2aade8c3c8938fdd7661ec1
+  }
+
+  private drawCircle(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, color: string, glow: boolean) {
+    if (glow) { ctx.shadowColor = color; ctx.shadowBlur = 20; }
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = color + '33'; ctx.fill();
+    ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  private drawRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, color: string, glow: boolean) {
+    if (glow) { ctx.shadowColor = color; ctx.shadowBlur = 20; }
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, r);
+    ctx.fillStyle = 'rgba(30, 41, 59, 0.8)'; ctx.fill();
+    ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  private drawDiamond(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string, glow: boolean) {
+    if (glow) { ctx.shadowColor = color; ctx.shadowBlur = 20; }
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - size); ctx.lineTo(cx + size, cy); ctx.lineTo(cx, cy + size); ctx.lineTo(cx - size, cy);
+    ctx.closePath();
+    ctx.fillStyle = color + '33'; ctx.fill();
+    ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  private drawGatewaySymbol(ctx: CanvasRenderingContext2D, cx: number, cy: number, type?: string) {
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    if (type === 'exclusive') {
+      const s = 10; ctx.beginPath(); ctx.moveTo(cx - s, cy - s); ctx.lineTo(cx + s, cy + s);
+      ctx.moveTo(cx + s, cy - s); ctx.lineTo(cx - s, cy + s); ctx.stroke();
+    } else if (type === 'parallel') {
+      const s = 12; ctx.beginPath(); ctx.moveTo(cx, cy - s); ctx.lineTo(cx, cy + s);
+      ctx.moveTo(cx - s, cy); ctx.lineTo(cx + s, cy); ctx.stroke();
+    } else if (type === 'inclusive') {
+      ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI * 2); ctx.stroke();
+    }
+  }
+
+  private drawConexion(ctx: CanvasRenderingContext2D, c: ConexionBpmn) {
+    const from = this.nodos().find(n => n.id === c.desde);
+    const to = this.nodos().find(n => n.id === c.hasta);
+    if (!from || !to) return;
+    const start = this.getPoint(from, to);
+    const end = this.getPoint(to, from);
+    ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y);
+    ctx.strokeStyle = 'rgba(148,163,184,0.4)'; ctx.lineWidth = 2; ctx.stroke();
+    this.drawArrowhead(ctx, end.x, end.y, Math.atan2(end.y - start.y, end.x - start.x));
+  }
+
+  private getPoint(n: NodoBpmn, target: {x:number, y:number}) {
+    const { cx, cy } = this.getNodoCenter(n);
+    if (n.tipo === 'actividad') {
+      if (Math.abs(target.x - cx) > Math.abs(target.y - cy)) return { x: target.x > cx ? n.x + 160 : n.x, y: cy };
+      return { x: cx, y: target.y > cy ? n.y + 60 : n.y };
+    }
+    const r = n.tipo === 'gateway' ? 36 : 28;
+    const angle = Math.atan2(target.y - cy, target.x - cx);
+    return { x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r };
+  }
+
+  private getNodoCenter(n: NodoBpmn) {
+    return { cx: n.x + (n.tipo==='actividad'?80 : n.tipo==='gateway'?40:30), cy: n.y + 30 };
   }
 
   private drawArrowhead(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
     ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-10, -5); ctx.lineTo(-10, 5); ctx.closePath();
     ctx.fillStyle = 'rgba(148,163,184,0.6)'; ctx.fill(); ctx.restore();
-  }
-
-  private drawGatewaySymbol(ctx: CanvasRenderingContext2D, cx: number, cy: number, type?: string) {
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 3;
-    ctx.lineCap = 'round';
-    
-    if (type === 'exclusive') {
-      // Dibujar una X
-      const s = 10;
-      ctx.beginPath();
-      ctx.moveTo(cx - s, cy - s); ctx.lineTo(cx + s, cy + s);
-      ctx.moveTo(cx + s, cy - s); ctx.lineTo(cx - s, cy + s);
-      ctx.stroke();
-    } else if (type === 'parallel') {
-      // Dibujar un +
-      const s = 12;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - s); ctx.lineTo(cx, cy + s);
-      ctx.moveTo(cx - s, cy); ctx.lineTo(cx + s, cy);
-      ctx.stroke();
-    } else if (type === 'inclusive') {
-      // Dibujar un O (círculo)
-      ctx.beginPath();
-      ctx.arc(cx, cy, 12, 0, Math.PI * 2);
-      ctx.stroke();
-    }
   }
 
   private drawWrappedText(ctx: CanvasRenderingContext2D, text: string, x: number, cy: number, maxW: number, lineH: number) {
@@ -336,21 +321,22 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
 
   private isInsideNodo(n: NodoBpmn, sx: number, sy: number): boolean {
     if (n.tipo === 'actividad') return sx >= n.x && sx <= n.x + 160 && sy >= n.y && sy <= n.y + 60;
-    const offset = n.tipo === 'gateway' ? 40 : 30;
+    const { cx, cy } = this.getNodoCenter(n);
     const r = n.tipo === 'gateway' ? 38 : 32;
-    return Math.hypot(sx - (n.x + offset), sy - (n.y + 30)) <= r;
+    return Math.hypot(sx - cx, sy - cy) <= r;
   }
 
   onCanvasMouseDown(e: MouseEvent) {
     const id = this.hitTest(e.offsetX, e.offsetY);
-    if (this.toolActivo() === 'conector') {
+    const tool = this.toolActivo();
+    if (tool === 'conector') {
       if (id) {
         if (!this.conectandoDesde) this.conectandoDesde = id;
         else if (id !== this.conectandoDesde) { this.addConexion(this.conectandoDesde, id); this.conectandoDesde = null; }
       } else this.conectandoDesde = null;
       return;
     }
-    if (this.toolActivo() === 'cursor') {
+    if (tool === 'cursor') {
       if (id) {
         this.seleccionarNodo(id); this.draggingId = id;
         const n = this.nodos().find(x => x.id === id)!;
@@ -360,17 +346,8 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
       return;
     }
     if (!id) {
-<<<<<<< HEAD
       const sx = (e.offsetX - this.panX()) / this.scale(), sy = (e.offsetY - this.panY()) / this.scale();
-      this.addNodo(this.toolActivo() as NodoBpmnTipo, sx - 80, sy - 30);
-=======
-      const sx = (e.offsetX - this.panX()) / this.scale();
-      const sy = (e.offsetY - this.panY()) / this.scale();
       this.addNodo(tool as NodoBpmnTipo, sx - 80, sy - 30);
-      
-      // Volver automáticamente al cursor para poder mover/editar el nuevo nodo
-      this.toolActivo.set('cursor');
->>>>>>> f97fe84247bedc62d2aade8c3c8938fdd7661ec1
     }
   }
 
@@ -398,26 +375,10 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   private addNodo(tipo: NodoBpmnTipo, x: number, y: number) {
-<<<<<<< HEAD
     const labels: Record<NodoBpmnTipo, string> = { inicio: 'Inicio', fin: 'Fin', actividad: 'Nueva actividad', gateway: 'Decisión' };
-    this.nodos.update(l => [...l, { id: `${tipo}-${Date.now()}`, tipo, label: labels[tipo], x, y }]);
-=======
-    const labels: Record<NodoBpmnTipo, string> = {
-      inicio: 'Inicio', fin: 'Fin', actividad: 'Nueva actividad', gateway: 'Decisión'
-    };
-    const nuevoId = `${tipo}-${Date.now()}`;
-    
-    this.nodos.update(l => [...l, {
-      id: nuevoId, 
-      tipo, 
-      label: labels[tipo], 
-      x, y,
-      gatewayType: tipo === 'gateway' ? 'exclusive' : undefined
-    }]);
-
-    // Seleccionarlo automáticamente para que se abra el panel de propiedades
-    this.selectedId.set(nuevoId);
->>>>>>> f97fe84247bedc62d2aade8c3c8938fdd7661ec1
+    const nuevo: NodoBpmn = { id: `${tipo}-${Date.now()}`, tipo, label: labels[tipo], x, y };
+    if (tipo === 'gateway') nuevo.gatewayType = 'exclusive';
+    this.nodos.update(l => [...l, nuevo]);
   }
 
   private addConexion(desde: string, hasta: string) {
@@ -511,16 +472,11 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
   volverALista() { this.router.navigate(['/procesos']); }
   getZoomPercent(): number { return Math.round(this.scale() * 100); }
 
-  // ── Propiedades ────────────────────────────────────────────────
+  // ── Propiedades extras ────────────────────────────────────────
   updateNodoLabel(id: string, label: string) {
     this.nodos.update(list => list.map(n => n.id === id ? { ...n, label } : n));
   }
-
   updateGatewayType(id: string, type: 'exclusive' | 'parallel' | 'inclusive') {
     this.nodos.update(list => list.map(n => n.id === id ? { ...n, gatewayType: type } : n));
-  }
-
-  updateConexionLabel(id: string, label: string) {
-    this.conexiones.update(list => list.map(c => c.id === id ? { ...c, label } : c));
   }
 }

@@ -96,7 +96,7 @@
         <div class="toolbox-divider"></div>
         <div class="toolbox-tip">
           <b>Consejos:</b><br>
-          • Doble clic → renombrar<br>
+          • Un clic → propiedades<br>
           • Rueda del ratón → zoom<br>
           • Conector → clic en 2 nodos<br>
           • Cursor + espacio → pan
@@ -125,52 +125,6 @@
             <span class="hint-conector">⚡ Haz clic en el nodo destino para conectar</span>
           }
         </div>
-
-        <!-- Panel de Propiedades (Sidebar derecha) -->
-        @if (selectedNodo()) {
-          <div class="properties-sidebar">
-            <div class="sidebar-header">
-              <h3>Propiedades</h3>
-              <button class="btn-close-sidebar" (click)="selectedId.set(null)">✕</button>
-            </div>
-            
-            <div class="sidebar-content">
-              <div class="prop-group">
-                <label>Nombre del paso</label>
-                <input type="text" [value]="selectedNodo()?.label" 
-                  (input)="updateNodoLabel(selectedNodo()!.id, $any($event.target).value)"
-                  placeholder="Ej: Revisar solicitud" />
-              </div>
-
-              @if (selectedNodo()?.tipo === 'gateway') {
-                <div class="prop-group">
-                  <label>Tipo de Gateway</label>
-                  <div class="gateway-types">
-                    <button [class.active]="selectedNodo()?.gatewayType === 'exclusive'"
-                      (click)="updateGatewayType(selectedNodo()!.id, 'exclusive')" title="Exclusivo (X)">
-                      <span class="g-sym">✕</span> <span>Exclusivo</span>
-                    </button>
-                    <button [class.active]="selectedNodo()?.gatewayType === 'parallel'"
-                      (click)="updateGatewayType(selectedNodo()!.id, 'parallel')" title="Paralelo (+)">
-                      <span class="g-sym">+</span> <span>Paralelo</span>
-                    </button>
-                    <button [class.active]="selectedNodo()?.gatewayType === 'inclusive'"
-                      (click)="updateGatewayType(selectedNodo()!.id, 'inclusive')" title="Inclusivo (O)">
-                      <span class="g-sym">○</span> <span>Inclusivo</span>
-                    </button>
-                  </div>
-                  <p class="prop-hint">Define si el flujo se divide por una condición, en paralelo o múltiples caminos.</p>
-                </div>
-              }
-
-              <div class="sidebar-footer">
-                <button class="btn-delete-node" (click)="borrarSeleccionado()">
-                  🗑️ Eliminar Elemento
-                </button>
-              </div>
-            </div>
-          </div>
-        }
       </div>
 
       <!-- Properties Panel (Right Sidebar) -->
@@ -182,14 +136,18 @@
           </div>
 
           <div class="props-content">
-            @if (actividadSeleccionada()) {
-              <div class="prop-group">
-                <label>Nombre de Actividad</label>
-                <input type="text" [value]="actividadSeleccionada()?.nombre"
-                  (input)="updatePropiedadActividad('nombre', $any($event.target).value)"
-                  placeholder="Ej: Revisar documentación">
-              </div>
+            <!-- Generic Label editing for all nodes -->
+            <div class="prop-group">
+              <label>Etiqueta / Nombre</label>
+              <input type="text" [value]="selectedNodo()?.label"
+                (input)="updateNodoLabel(selectedNodo()!.id, $any($event.target).value)"
+                placeholder="Nombre del paso">
+            </div>
 
+            <!-- Activity Specific Properties -->
+            @if (selectedNodo()?.tipo === 'actividad' && actividadSeleccionada()) {
+              <div class="prop-divider"></div>
+              
               <div class="prop-group">
                 <label>Tipo de Actividad</label>
                 <select [value]="actividadSeleccionada()?.tipoActividad"
@@ -214,19 +172,44 @@
                 <label>Descripción / Instrucciones</label>
                 <textarea rows="4" [value]="actividadSeleccionada()?.descripcion"
                   (input)="updatePropiedadActividad('descripcion', $any($event.target).value)"
-                  placeholder="Instrucciones detalladas para esta actividad..."></textarea>
+                  placeholder="Instrucciones detalladas..."></textarea>
               </div>
 
               <div class="props-actions">
                 <button class="btn-save-props" (click)="guardarPropiedadesActividad()" [disabled]="guardando()">
-                  {{ guardando() ? 'Guardando...' : 'Aplicar Cambios' }}
+                  {{ guardando() ? 'Guardando...' : 'Vincular Actividad' }}
                 </button>
               </div>
-            } @else {
-              <div class="no-props-msg">
-                <p>Este elemento no requiere configuración adicional.</p>
+            }
+
+            <!-- Gateway Specific Properties -->
+            @if (selectedNodo()?.tipo === 'gateway') {
+              <div class="prop-divider"></div>
+              <div class="prop-group">
+                <label>Configuración de Decisión</label>
+                <div class="gateway-types-grid">
+                  <button type="button" [class.active]="selectedNodo()?.gatewayType === 'exclusive'"
+                    (click)="updateGatewayType(selectedNodo()!.id, 'exclusive')">
+                    ✕ <small>Exclusivo</small>
+                  </button>
+                  <button type="button" [class.active]="selectedNodo()?.gatewayType === 'parallel'"
+                    (click)="updateGatewayType(selectedNodo()!.id, 'parallel')">
+                    + <small>Paralelo</small>
+                  </button>
+                  <button type="button" [class.active]="selectedNodo()?.gatewayType === 'inclusive'"
+                    (click)="updateGatewayType(selectedNodo()!.id, 'inclusive')">
+                    ○ <small>Inclusivo</small>
+                  </button>
+                </div>
+                <p class="prop-hint">Los gateways definen cómo se divide o une el flujo de trabajo.</p>
               </div>
             }
+
+            <div class="sidebar-footer">
+              <button class="btn-delete-node" (click)="borrarSeleccionado()">
+                🗑️ Eliminar Elemento
+              </button>
+            </div>
           </div>
         } @else {
           <div class="empty-props">
