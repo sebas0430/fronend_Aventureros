@@ -41,6 +41,15 @@ export class ProcesosComponent implements OnInit {
     categoria: ''
   });
 
+  // ── Edición de Proceso ──────────────────────────────────────
+  mostrarModalEditar = signal(false);
+  procesoParaEditar = signal<Proceso | null>(null);
+  editando = signal(false);
+
+  // ── Confirmación de Eliminación ─────────────────────────────
+  mostrarModalEliminar = signal(false);
+  procesoParaEliminar = signal<Proceso | null>(null);
+
   readonly categorias = [
     'Recursos Humanos', 'Finanzas', 'Operaciones', 'Ventas',
     'TI', 'Legal', 'Marketing', 'Otro'
@@ -72,18 +81,26 @@ export class ProcesosComponent implements OnInit {
     this.cargarProcesos(user.empresaId);
   }
 
-  cargarProcesos(empresaId: number) {
+  get procesosFiltrados(): Proceso[] {
+    const f = this.filtroEstado();
+    // Siempre recargar desde el backend si cambia el filtro para asegurar ver los INACTIVOS
+    return this.procesos();
+  }
+
+  setFiltro(estado: string) {
+    this.filtroEstado.set(estado);
+    const user = this.usuarioLogueado();
+    if (user) {
+      this.cargarProcesos(user.empresaId, estado === 'todos' ? undefined : estado);
+    }
+  }
+
+  cargarProcesos(empresaId: number, estado?: string) {
     this.isLoading.set(true);
-    this.procesoService.listarPorEmpresa(empresaId).subscribe({
+    this.procesoService.filtrarProcesos(empresaId, estado).subscribe({
       next: (lista) => { this.procesos.set(lista); this.isLoading.set(false); },
       error: () => { this.errorMessage.set('No se pudieron cargar los procesos.'); this.isLoading.set(false); }
     });
-  }
-
-  get procesosFiltrados(): Proceso[] {
-    const f = this.filtroEstado();
-    if (f === 'todos') return this.procesos();
-    return this.procesos().filter(p => p.estado === f);
   }
 
   abrirModal() { this.mostrarModal.set(true); }
@@ -129,6 +146,85 @@ export class ProcesosComponent implements OnInit {
 
   abrirEditor(proceso: Proceso) {
     this.router.navigate(['/editor', proceso.id]);
+  }
+
+  // ── Edición de Información ──────────────────────────────────
+  abrirModalEditar(proceso: Proceso) {
+    this.procesoParaEditar.set(proceso);
+    this.form.set({
+      nombre: proceso.nombre,
+      descripcion: proceso.descripcion,
+      categoria: proceso.categoria
+    });
+    this.mostrarModalEditar.set(true);
+  }
+
+  cerrarModalEditar() {
+    this.mostrarModalEditar.set(false);
+    this.procesoParaEditar.set(null);
+    this.form.set({ nombre: '', descripcion: '', categoria: '' });
+  }
+
+  confirmarEdicion() {
+    const proceso = this.procesoParaEditar();
+    const f = this.form();
+    const user = this.usuarioLogueado();
+    if (!proceso || !user) return;
+
+    this.editando.set(true);
+    const dto = { ...f, usuarioId: user.id };
+
+    this.procesoService.editarProceso(proceso.id, dto).subscribe({
+      next: (actualizado) => {
+        this.procesos.update(lista => lista.map(p => 
+          p.id === actualizado.id ? { ...p, ...actualizado } : p
+        ));
+        this.editando.set(false);
+        this.cerrarModalEditar();
+        this.mostrarExito(`Proceso "${actualizado.nombre}" actualizado.`);
+      },
+      error: (err) => {
+        this.errorMessage.set('Error al actualizar el proceso.');
+        this.editando.set(false);
+      }
+    });
+  }
+
+  // ── Eliminación (HU-06) ─────────────────────────────────────
+  eliminarProceso(proceso: Proceso) {
+    this.procesoParaEliminar.set(proceso);
+    this.mostrarModalEliminar.set(true);
+  }
+
+  cerrarModalEliminar() {
+    this.mostrarModalEliminar.set(false);
+    this.procesoParaEliminar.set(null);
+  }
+
+  confirmarEliminacionReal() {
+    const proceso = this.procesoParaEliminar();
+    const user = this.usuarioLogueado();
+    if (!proceso || !user) return;
+
+    this.isLoading.set(true);
+    this.procesoService.eliminarProceso(proceso.id, user.id).subscribe({
+      next: () => {
+        if (this.filtroEstado() !== 'INACTIVO') {
+          this.procesos.update(lista => lista.filter(p => p.id !== proceso.id));
+        } else {
+          this.cargarProcesos(user.empresaId, 'INACTIVO');
+        }
+        this.isLoading.set(false);
+        this.cerrarModalEliminar();
+        this.mostrarExito(`Proceso "${proceso.nombre}" eliminado correctamente.`);
+      },
+      error: (err) => {
+        const msg = err?.error?.message || err?.error || 'No se pudo eliminar el proceso.';
+        this.errorMessage.set(typeof msg === 'string' ? msg : 'Error al eliminar');
+        this.isLoading.set(false);
+        this.cerrarModalEliminar();
+      }
+    });
   }
 
   // ── Cambio de Estado ────────────────────────────────────────

@@ -30,12 +30,15 @@ export interface NodoBpmn {
   label: string;
   x: number;
   y: number;
+  gatewayType?: 'exclusive' | 'parallel' | 'inclusive';
 }
 
 export interface ConexionBpmn {
   id: string;
   desde: string;
   hasta: string;
+  label?: string;
+  condicion?: string;
 }
 
 export interface DefinicionBpmn {

@@ -157,3 +157,98 @@ canvas {
   pointer-events: none; white-space: nowrap;
 }
 .hint-conector { color: #facc15; font-weight: 600; }
+
+/* ─── Properties Sidebar ──────────────────────────── */
+.properties-sidebar {
+  position: absolute;
+  top: 16px; right: 16px; bottom: 16px;
+  width: 280px;
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  display: flex; flex-direction: column;
+  box-shadow: -10px 0 30px rgba(0,0,0,0.4);
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 100;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.sidebar-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sidebar-header h3 { font-size: 0.95rem; font-weight: 700; color: #f1f5f9; margin: 0; }
+
+.btn-close-sidebar {
+  background: none; border: none; color: #64748b; font-size: 1.1rem;
+  cursor: pointer; transition: color 0.2s;
+}
+.btn-close-sidebar:hover { color: #f1f5f9; }
+
+.sidebar-content {
+  padding: 20px;
+  flex: 1; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 24px;
+}
+
+.prop-group { display: flex; flex-direction: column; gap: 8px; }
+.prop-group label { font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.prop-group input {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #f1f5f9; font-size: 0.9rem; font-family: inherit;
+  transition: all 0.2s;
+}
+.prop-group input:focus {
+  outline: none; border-color: #4f46e5; background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+.gateway-types {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.gateway-types button {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  color: #94a3b8; font-size: 0.85rem; font-weight: 500;
+  cursor: pointer; transition: all 0.2s;
+}
+.gateway-types button .g-sym {
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.05); border-radius: 6px;
+  font-weight: 800; font-size: 1rem;
+}
+.gateway-types button:hover { background: rgba(255,255,255,0.06); color: #e2e8f0; }
+.gateway-types button.active {
+  background: rgba(79,70,229,0.15); border-color: #4f46e5; color: #a5b4fc;
+}
+.gateway-types button.active .g-sym { background: #4f46e5; color: white; }
+
+.prop-hint { font-size: 0.68rem; color: #475569; line-height: 1.5; margin-top: 4px; }
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.btn-delete-node {
+  width: 100%; padding: 10px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 10px;
+  color: #f87171; font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-delete-node:hover { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); }

@@ -1,6 +1,6 @@
 import {
   Component, signal, inject, OnInit, AfterViewInit,
-  ElementRef, ViewChild, HostListener, OnDestroy, PLATFORM_ID
+  ElementRef, ViewChild, HostListener, OnDestroy, PLATFORM_ID, computed
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -55,6 +55,10 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
   private panning = false;
   private panStartX = 0;
   private panStartY = 0;
+
+  // Selected element derived state
+  selectedNodo = computed(() => this.nodos().find(n => n.id === this.selectedId()) || null);
+  selectedConexion = computed(() => this.conexiones().find(c => c.id === this.selectedId()) || null);
 
   readonly TOOLS: { id: NodoBpmnTipo | 'cursor' | 'conector'; label: string; icon: string }[] = [
     { id: 'cursor',    label: 'Seleccionar',  icon: '↖' },
@@ -310,6 +314,7 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
         break;
       case 'gateway':
         this.drawDiamond(ctx, n.x + 40, n.y + 30, 36, '#f59e0b', hovered || isConectando);
+        this.drawGatewaySymbol(ctx, n.x + 40, n.y + 30, n.gatewayType);
         ctx.fillStyle = '#fff'; ctx.font = '600 10px Inter, system-ui'; ctx.textAlign = 'center';
         ctx.fillText(n.label, n.x + 40, n.y + 78);
         break;
@@ -341,6 +346,33 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
     ctx.fillStyle = color + '25'; ctx.fill();
     ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.stroke();
     ctx.shadowBlur = 0;
+  }
+
+  private drawGatewaySymbol(ctx: CanvasRenderingContext2D, cx: number, cy: number, type?: string) {
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    
+    if (type === 'exclusive') {
+      // Dibujar una X
+      const s = 10;
+      ctx.beginPath();
+      ctx.moveTo(cx - s, cy - s); ctx.lineTo(cx + s, cy + s);
+      ctx.moveTo(cx + s, cy - s); ctx.lineTo(cx - s, cy + s);
+      ctx.stroke();
+    } else if (type === 'parallel') {
+      // Dibujar un +
+      const s = 12;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - s); ctx.lineTo(cx, cy + s);
+      ctx.moveTo(cx - s, cy); ctx.lineTo(cx + s, cy);
+      ctx.stroke();
+    } else if (type === 'inclusive') {
+      // Dibujar un O (círculo)
+      ctx.beginPath();
+      ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+      ctx.stroke();
+    }
   }
 
   private drawWrappedText(ctx: CanvasRenderingContext2D, text: string, x: number, cy: number, maxW: number, lineH: number) {
@@ -426,6 +458,9 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
       const sx = (e.offsetX - this.panX()) / this.scale();
       const sy = (e.offsetY - this.panY()) / this.scale();
       this.addNodo(tool as NodoBpmnTipo, sx - 80, sy - 30);
+      
+      // Volver automáticamente al cursor para poder mover/editar el nuevo nodo
+      this.toolActivo.set('cursor');
     }
   }
 
@@ -478,9 +513,18 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
     const labels: Record<NodoBpmnTipo, string> = {
       inicio: 'Inicio', fin: 'Fin', actividad: 'Nueva actividad', gateway: 'Decisión'
     };
+    const nuevoId = `${tipo}-${Date.now()}`;
+    
     this.nodos.update(l => [...l, {
-      id: `${tipo}-${Date.now()}`, tipo, label: labels[tipo], x, y
+      id: nuevoId, 
+      tipo, 
+      label: labels[tipo], 
+      x, y,
+      gatewayType: tipo === 'gateway' ? 'exclusive' : undefined
     }]);
+
+    // Seleccionarlo automáticamente para que se abra el panel de propiedades
+    this.selectedId.set(nuevoId);
   }
 
   private addConexion(desde: string, hasta: string) {
@@ -537,4 +581,17 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
   volverALista() { this.router.navigate(['/procesos']); }
 
   getZoomPercent(): number { return Math.round(this.scale() * 100); }
+
+  // ── Propiedades ────────────────────────────────────────────────
+  updateNodoLabel(id: string, label: string) {
+    this.nodos.update(list => list.map(n => n.id === id ? { ...n, label } : n));
+  }
+
+  updateGatewayType(id: string, type: 'exclusive' | 'parallel' | 'inclusive') {
+    this.nodos.update(list => list.map(n => n.id === id ? { ...n, gatewayType: type } : n));
+  }
+
+  updateConexionLabel(id: string, label: string) {
+    this.conexiones.update(list => list.map(c => c.id === id ? { ...c, label } : c));
+  }
 }
