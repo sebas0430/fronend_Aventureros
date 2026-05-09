@@ -1,119 +1,125 @@
-<app-navbar></app-navbar>
+<div class="dashboard-container">
+  <app-navbar></app-navbar>
 
-<div class="rp-page">
-  <header class="rp-header">
-    <div class="rp-header-text">
-      <h1 class="rp-title">Roles de Proceso</h1>
-      <p class="rp-subtitle">Funciones que se asignan a las actividades. Pertenecen a la empresa, no a personas.</p>
-    </div>
-    <button class="btn-primary" (click)="abrirCrear()">+ Nuevo Rol</button>
-  </header>
-
-  <!-- Error global -->
-  <div class="rp-error" *ngIf="errorMsg()">{{ errorMsg() }}</div>
-
-  <!-- Loading -->
-  <div class="rp-loading" *ngIf="isLoading()">
-    <span class="spinner"></span> Cargando roles...
-  </div>
-
-  <!-- Lista vacía -->
-  <div class="rp-empty" *ngIf="!isLoading() && roles().length === 0">
-    <div class="rp-empty-icon">🎭</div>
-    <p>No hay roles de proceso creados aún.</p>
-    <button class="btn-primary" (click)="abrirCrear()">Crear el primer rol</button>
-  </div>
-
-  <!-- Tabla de roles -->
-  <div class="rp-grid" *ngIf="!isLoading() && roles().length > 0">
-    <div class="rp-card" *ngFor="let rol of roles()">
-      <div class="rp-card-header">
-        <div class="rp-card-icon">{{ rol.nombre[0].toUpperCase() }}</div>
-        <div class="rp-card-info">
-          <h3 class="rp-card-name">{{ rol.nombre }}</h3>
-          <p class="rp-card-desc">{{ rol.descripcion || 'Sin descripción' }}</p>
-        </div>
+  <main class="main-content">
+    <header class="rp-header">
+      <div class="header-text">
+        <h1 class="rp-title">Roles de Proceso</h1>
+        <p class="rp-subtitle">Funciones que se asignan a las actividades. Pertenecen a la empresa, no a personas.</p>
       </div>
+      <button class="btn-primary" (click)="abrirCrear()">+ Nuevo Rol</button>
+    </header>
 
-      <!-- Uso en procesos -->
-      <div class="rp-uso" *ngIf="rol.usoEnProcesos.length > 0">
-        <span class="rp-uso-label">Usado en:</span>
-        <div class="rp-uso-list">
-          <div class="rp-uso-item" *ngFor="let proc of rol.usoEnProcesos">
-            <span class="rp-uso-proceso">📋 {{ proc.procesoNombre }}</span>
-            <div class="rp-uso-actividades" *ngIf="proc.actividades.length > 0">
-              <span class="rp-uso-act" *ngFor="let act of proc.actividades">
-                ▸ {{ act.actividadNombre }} <em>({{ act.tipoActividad }})</em>
-              </span>
+    <!-- Error global -->
+    <div class="rp-error" *ngIf="errorMsg()">{{ errorMsg() }}</div>
+
+    <!-- Loading -->
+    <div class="rp-loading" *ngIf="isLoading()">
+      <span class="spinner"></span> Cargando roles...
+    </div>
+
+    <!-- Lista vacía -->
+    <div class="rp-empty" *ngIf="!isLoading() && roles().length === 0">
+      <div class="rp-empty-icon">🎭</div>
+      <p>No hay roles de proceso creados aún.</p>
+      <button class="btn-primary" (click)="abrirCrear()">Crear el primer rol</button>
+    </div>
+
+    <!-- Tabla de roles -->
+    <div class="rp-grid" *ngIf="!isLoading() && roles().length > 0">
+      <div class="rp-card" *ngFor="let rol of roles()">
+        <div class="rp-card-header">
+          <div class="rp-card-icon">{{ rol.nombre[0].toUpperCase() }}</div>
+          <div class="rp-card-info">
+            <h3 class="rp-card-name">{{ rol.nombre }}</h3>
+            <p class="rp-card-desc">{{ rol.descripcion || 'Sin descripción' }}</p>
+          </div>
+        </div>
+
+        <!-- Uso en procesos -->
+        <div class="rp-uso" *ngIf="rol.usoEnProcesos.length > 0">
+          <span class="rp-uso-label">Usado en:</span>
+          <div class="rp-uso-list">
+            <div class="rp-uso-item" *ngFor="let proc of rol.usoEnProcesos">
+              <span class="rp-uso-proceso">📋 {{ proc.procesoNombre }}</span>
+              <div class="rp-uso-actividades" *ngIf="proc.actividades.length > 0">
+                <span class="rp-uso-act" *ngFor="let act of proc.actividades">
+                  ▸ {{ act.actividadNombre }} <em>({{ act.tipoActividad }})</em>
+                </span>
+              </div>
             </div>
           </div>
         </div>
+        <div class="rp-sin-uso" *ngIf="!rol.usoEnProcesos || rol.usoEnProcesos.length === 0">
+          <span>Sin uso activo en procesos</span>
+        </div>
+
+        <div class="rp-stats">
+          <span class="rp-stat">
+            <strong>{{ rol.usoEnProcesos.length }}</strong> procesos
+          </span>
+          <span class="rp-stat">
+            <strong>{{ totalActividades(rol) }}</strong> actividades
+          </span>
+        </div>
+
+        <div class="rp-card-actions">
+          <button class="btn-edit" (click)="abrirEditar(rol)">✏️ Editar</button>
+          <button class="btn-delete" (click)="pedirEliminar(rol)"
+            [disabled]="rol.usoEnProcesos.length > 0"
+            [title]="rol.usoEnProcesos.length > 0 ? 'No se puede eliminar: está en uso' : 'Eliminar rol'">
+            🗑️ Eliminar
+          </button>
+        </div>
       </div>
-      <div class="rp-sin-uso" *ngIf="!rol.usoEnProcesos || rol.usoEnProcesos.length === 0">
-        <span>Sin uso activo en procesos</span>
+    </div>
+  </main>
+
+  <!-- ── Modal Crear / Editar ─────────────────────────────────── -->
+  <div class="modal-overlay" *ngIf="mostrarModal()" (click)="cerrarModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h2 class="modal-title">{{ modoEdicion() ? 'Editar Rol' : 'Nuevo Rol de Proceso' }}</h2>
+
+      <div class="form-group">
+        <label class="modal-label">Nombre del rol *</label>
+        <input class="modal-input" type="text" placeholder="ej. Analista de Calidad"
+          [value]="form().nombre"
+          (input)="setFormField('nombre', $any($event.target).value)" />
       </div>
 
-      <div class="rp-stats">
-        <span class="rp-stat">
-          <strong>{{ rol.usoEnProcesos.length }}</strong> procesos
-        </span>
-        <span class="rp-stat">
-          <strong>{{ totalActividades(rol) }}</strong> actividades
-        </span>
+      <div class="form-group">
+        <label class="modal-label">Descripción</label>
+        <textarea class="modal-textarea" rows="3" placeholder="¿Qué responsabilidades tiene este rol?"
+          [value]="form().descripcion"
+          (input)="setFormField('descripcion', $any($event.target).value)"></textarea>
       </div>
 
-      <div class="rp-card-actions">
-        <button class="btn-edit" (click)="abrirEditar(rol)">✏️ Editar</button>
-        <button class="btn-delete" (click)="pedirEliminar(rol)"
-          [disabled]="rol.usoEnProcesos.length > 0"
-          [title]="rol.usoEnProcesos.length > 0 ? 'No se puede eliminar: está en uso' : 'Eliminar rol'">
-          🗑️ Eliminar
+      <div class="modal-error" *ngIf="errorMsg()">{{ errorMsg() }}</div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="cerrarModal()">Cancelar</button>
+        <button class="btn-primary" (click)="guardar()" [disabled]="guardando() || !form().nombre.trim()">
+          {{ guardando() ? 'Guardando...' : (modoEdicion() ? 'Guardar cambios' : 'Crear rol') }}
         </button>
       </div>
     </div>
   </div>
-</div>
 
-<!-- ── Modal Crear / Editar ─────────────────────────────────── -->
-<div class="modal-overlay" *ngIf="mostrarModal()" (click)="cerrarModal()">
-  <div class="modal-box" (click)="$event.stopPropagation()">
-    <h2 class="modal-title">{{ modoEdicion() ? 'Editar Rol' : 'Nuevo Rol de Proceso' }}</h2>
-
-    <label class="modal-label">Nombre del rol *</label>
-    <input class="modal-input" type="text" placeholder="ej. Analista de Calidad"
-      [value]="form().nombre"
-      (input)="setFormField('nombre', $any($event.target).value)" />
-
-    <label class="modal-label">Descripción</label>
-    <textarea class="modal-textarea" rows="3" placeholder="¿Qué responsabilidades tiene este rol?"
-      [value]="form().descripcion"
-      (input)="setFormField('descripcion', $any($event.target).value)"></textarea>
-
-    <div class="modal-error" *ngIf="errorMsg()">{{ errorMsg() }}</div>
-
-    <div class="modal-actions">
-      <button class="btn-secondary" (click)="cerrarModal()">Cancelar</button>
-      <button class="btn-primary" (click)="guardar()" [disabled]="guardando() || !form().nombre.trim()">
-        {{ guardando() ? 'Guardando...' : (modoEdicion() ? 'Guardar cambios' : 'Crear rol') }}
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ── Modal Confirmar Eliminar ─────────────────────────────── -->
-<div class="modal-overlay" *ngIf="rolAEliminar()" (click)="cancelarEliminar()">
-  <div class="modal-box modal-danger" (click)="$event.stopPropagation()">
-    <div class="danger-icon">⚠️</div>
-    <h2 class="modal-title">¿Eliminar rol?</h2>
-    <p class="danger-msg">
-      Vas a eliminar el rol <strong>{{ rolAEliminar()?.nombre }}</strong>.
-      Esta acción no se puede deshacer.
-    </p>
-    <div class="modal-actions">
-      <button class="btn-secondary" (click)="cancelarEliminar()">Cancelar</button>
-      <button class="btn-danger" (click)="confirmarEliminar()" [disabled]="eliminando()">
-        {{ eliminando() ? 'Eliminando...' : 'Eliminar' }}
-      </button>
+  <!-- ── Modal Confirmar Eliminar ─────────────────────────────── -->
+  <div class="modal-overlay" *ngIf="rolAEliminar()" (click)="cancelarEliminar()">
+    <div class="modal-box modal-danger" (click)="$event.stopPropagation()">
+      <div class="danger-icon">⚠️</div>
+      <h2 class="modal-title">¿Eliminar rol?</h2>
+      <p class="danger-msg">
+        Vas a eliminar el rol <strong>{{ rolAEliminar()?.nombre }}</strong>.
+        Esta acción no se puede deshacer.
+      </p>
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="cancelarEliminar()">Cancelar</button>
+        <button class="btn-danger" (click)="confirmarEliminar()" [disabled]="eliminando()">
+          {{ eliminando() ? 'Eliminando...' : 'Eliminar' }}
+        </button>
+      </div>
     </div>
   </div>
 </div>

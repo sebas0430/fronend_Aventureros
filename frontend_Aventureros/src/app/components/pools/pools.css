@@ -3,6 +3,7 @@
    ============================================= */
 
 .dashboard-container {
+  display: flex;
   min-height: 100vh;
   background: linear-gradient(135deg, #0f0c29 0%, #1a1a2e 50%, #16213e 100%);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -10,9 +11,12 @@
 }
 
 .main-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 24px;
+  flex: 1;
+  max-width: 1400px;
+  margin: 0;
+  padding: 40px 48px;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 @keyframes fadeIn {

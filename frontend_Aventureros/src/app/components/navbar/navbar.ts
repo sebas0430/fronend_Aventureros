@@ -18,6 +18,7 @@ export class NavbarComponent implements OnInit {
 
   usuarioLogueado = signal<Usuario | null>(null);
   nombreEmpresa = signal('Cargando...');
+  isCollapsed = signal(false);
 
   ngOnInit() {
     if (!isPlatformBrowser(this.platformId)) return;
@@ -32,6 +33,10 @@ export class NavbarComponent implements OnInit {
       next: (empresa) => this.nombreEmpresa.set(empresa.nombre),
       error: () => this.nombreEmpresa.set('Mi Empresa')
     });
+  }
+
+  toggleSidebar() {
+    this.isCollapsed.update(v => !v);
   }
 
   logout() {

@@ -21,3 +21,19 @@ a {
 button, input {
   font-family: inherit;
 }
+
+/* Global Layout for Sidebar */
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.main-content {
+  flex: 1;
+  max-width: 1400px;
+  margin: 0;
+  padding: 40px 48px;
+  height: 100vh;
+  overflow-y: auto;
+}

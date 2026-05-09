@@ -1,101 +1,110 @@
-<app-navbar></app-navbar>
-<div class="lanes-page">
-  <header class="lanes-header">
-    <div>
-      <h1 class="lanes-title">Swimlanes</h1>
-      <p class="lanes-subtitle">Carriles de responsabilidad dentro de cada Pool de la empresa.</p>
-    </div>
-  </header>
+<div class="dashboard-container">
+  <app-navbar></app-navbar>
 
-  <div class="lanes-error" *ngIf="errorMsg()">{{ errorMsg() }}</div>
-
-  <div class="lanes-layout">
-    <!-- Panel Pools -->
-    <aside class="pools-panel">
-      <h2 class="panel-title">Pools</h2>
-      <div class="pools-loading" *ngIf="isLoadingPools()"><span class="spinner"></span></div>
-      <div class="pool-item" *ngFor="let pool of pools()"
-        [class.active]="poolSeleccionado()?.id === pool.id"
-        (click)="seleccionarPool(pool)">
-        <span class="pool-icon">🗂</span>
-        <span class="pool-name">{{ pool.nombre }}</span>
-      </div>
-      <div class="no-pools" *ngIf="!isLoadingPools() && pools().length === 0">
-        Sin pools creados.<br>Ve a <strong>Pools</strong> para crear uno.
-      </div>
-    </aside>
-
-    <!-- Panel Lanes -->
-    <main class="lanes-panel" *ngIf="poolSeleccionado(); else sinSeleccion">
-      <div class="lanes-panel-header">
-        <h2 class="panel-title">Lanes de <em>{{ poolSeleccionado()!.nombre }}</em></h2>
-        <button class="btn-primary" (click)="abrirCrear()">+ Nuevo Lane</button>
-      </div>
-
-      <div class="lanes-loading" *ngIf="isLoadingLanes()"><span class="spinner"></span> Cargando lanes...</div>
-
-      <div class="lanes-empty" *ngIf="!isLoadingLanes() && lanes().length === 0">
-        <div class="empty-icon">🏊</div>
-        <p>No hay lanes en este pool. Crea el primero.</p>
-      </div>
-
-      <div class="lanes-list" *ngIf="!isLoadingLanes() && lanes().length > 0">
-        <div class="lane-card" *ngFor="let lane of lanes()">
-          <div class="lane-stripe"></div>
-          <div class="lane-info">
-            <span class="lane-name">{{ lane.nombre }}</span>
-            <span class="lane-desc" *ngIf="lane.descripcion">{{ lane.descripcion }}</span>
-          </div>
-          <div class="lane-actions">
-            <button class="btn-edit" (click)="abrirEditar(lane)">✏️</button>
-            <button class="btn-delete" (click)="pedirEliminar(lane)">🗑️</button>
-          </div>
+  <main class="main-content">
+    <div class="lanes-page">
+      <header class="lanes-header">
+        <div>
+          <h1 class="lanes-title">Swimlanes</h1>
+          <p class="lanes-subtitle">Carriles de responsabilidad dentro de cada Pool de la empresa.</p>
         </div>
+      </header>
+
+      <div class="lanes-error" *ngIf="errorMsg()">{{ errorMsg() }}</div>
+
+      <div class="lanes-layout">
+        <!-- Panel Pools -->
+        <aside class="pools-panel">
+          <h2 class="panel-title">Pools</h2>
+          <div class="pools-loading" *ngIf="isLoadingPools()"><span class="spinner"></span></div>
+          <div class="pool-item" *ngFor="let pool of pools()"
+            [class.active]="poolSeleccionado()?.id === pool.id"
+            (click)="seleccionarPool(pool)">
+            <span class="pool-icon">🗂</span>
+            <span class="pool-name">{{ pool.nombre }}</span>
+          </div>
+          <div class="no-pools" *ngIf="!isLoadingPools() && pools().length === 0">
+            Sin pools creados.<br>Ve a <strong>Pools</strong> para crear uno.
+          </div>
+        </aside>
+
+        <!-- Panel Lanes -->
+        <section class="lanes-panel" *ngIf="poolSeleccionado(); else sinSeleccion">
+          <div class="lanes-panel-header">
+            <h2 class="panel-title">Lanes de <em>{{ poolSeleccionado()!.nombre }}</em></h2>
+            <button class="btn-primary" (click)="abrirCrear()">+ Nuevo Lane</button>
+          </div>
+
+          <div class="lanes-loading" *ngIf="isLoadingLanes()"><span class="spinner"></span> Cargando lanes...</div>
+
+          <div class="lanes-empty" *ngIf="!isLoadingLanes() && lanes().length === 0">
+            <div class="empty-icon">🏊</div>
+            <p>No hay lanes en este pool. Crea el primero.</p>
+          </div>
+
+          <div class="lanes-list" *ngIf="!isLoadingLanes() && lanes().length > 0">
+            <div class="lane-card" *ngFor="let lane of lanes()">
+              <div class="lane-stripe"></div>
+              <div class="lane-info">
+                <span class="lane-name">{{ lane.nombre }}</span>
+                <span class="lane-desc" *ngIf="lane.descripcion">{{ lane.descripcion }}</span>
+              </div>
+              <div class="lane-actions">
+                <button class="btn-edit" (click)="abrirEditar(lane)">✏️</button>
+                <button class="btn-delete" (click)="pedirEliminar(lane)">🗑️</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <ng-template #sinSeleccion>
+          <section class="lanes-panel lanes-placeholder">
+            <div class="placeholder-icon">👈</div>
+            <p>Selecciona un Pool para ver y gestionar sus lanes.</p>
+          </section>
+        </ng-template>
       </div>
-    </main>
+    </div>
+  </main>
 
-    <ng-template #sinSeleccion>
-      <main class="lanes-panel lanes-placeholder">
-        <div class="placeholder-icon">👈</div>
-        <p>Selecciona un Pool para ver y gestionar sus lanes.</p>
-      </main>
-    </ng-template>
-  </div>
-</div>
-
-<!-- Modal Crear/Editar -->
-<div class="modal-overlay" *ngIf="mostrarModal()" (click)="cerrarModal()">
-  <div class="modal-box" (click)="$event.stopPropagation()">
-    <h2 class="modal-title">{{ modoEdicion() ? 'Editar Lane' : 'Nuevo Lane' }}</h2>
-    <label class="modal-label">Nombre *</label>
-    <input class="modal-input" type="text" placeholder="ej. Gerencia de TI"
-      [value]="form().nombre"
-      (input)="setFormField('nombre', $any($event.target).value)" />
-    <label class="modal-label">Descripción</label>
-    <textarea class="modal-textarea" rows="3" placeholder="Rol o área que representa este lane"
-      [value]="form().descripcion"
-      (input)="setFormField('descripcion', $any($event.target).value)"></textarea>
-    <div class="modal-error" *ngIf="errorMsg()">{{ errorMsg() }}</div>
-    <div class="modal-actions">
-      <button class="btn-secondary" (click)="cerrarModal()">Cancelar</button>
-      <button class="btn-primary" (click)="guardar()" [disabled]="guardando() || !form().nombre.trim()">
-        {{ guardando() ? 'Guardando...' : (modoEdicion() ? 'Guardar' : 'Crear lane') }}
-      </button>
+  <!-- Modal Crear/Editar -->
+  <div class="modal-overlay" *ngIf="mostrarModal()" (click)="cerrarModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h2 class="modal-title">{{ modoEdicion() ? 'Editar Lane' : 'Nuevo Lane' }}</h2>
+      <div class="form-group">
+        <label class="modal-label">Nombre *</label>
+        <input class="modal-input" type="text" placeholder="ej. Gerencia de TI"
+          [value]="form().nombre"
+          (input)="setFormField('nombre', $any($event.target).value)" />
+      </div>
+      <div class="form-group">
+        <label class="modal-label">Descripción</label>
+        <textarea class="modal-textarea" rows="3" placeholder="Rol o área que representa este lane"
+          [value]="form().descripcion"
+          (input)="setFormField('descripcion', $any($event.target).value)"></textarea>
+      </div>
+      <div class="modal-error" *ngIf="errorMsg()">{{ errorMsg() }}</div>
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="cerrarModal()">Cancelar</button>
+        <button class="btn-primary" (click)="guardar()" [disabled]="guardando() || !form().nombre.trim()">
+          {{ guardando() ? 'Guardando...' : (modoEdicion() ? 'Guardar' : 'Crear lane') }}
+        </button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Modal confirmar eliminar -->
-<div class="modal-overlay" *ngIf="laneAEliminar()" (click)="cancelarEliminar()">
-  <div class="modal-box modal-danger" (click)="$event.stopPropagation()">
-    <div class="danger-icon">⚠️</div>
-    <h2 class="modal-title">¿Eliminar lane?</h2>
-    <p class="danger-msg">Se eliminará el lane <strong>{{ laneAEliminar()?.nombre }}</strong>.</p>
-    <div class="modal-actions">
-      <button class="btn-secondary" (click)="cancelarEliminar()">Cancelar</button>
-      <button class="btn-danger" (click)="confirmarEliminar()" [disabled]="eliminando()">
-        {{ eliminando() ? 'Eliminando...' : 'Eliminar' }}
-      </button>
+  <!-- Modal confirmar eliminar -->
+  <div class="modal-overlay" *ngIf="laneAEliminar()" (click)="cancelarEliminar()">
+    <div class="modal-box modal-danger" (click)="$event.stopPropagation()">
+      <div class="danger-icon">⚠️</div>
+      <h2 class="modal-title">¿Eliminar lane?</h2>
+      <p class="danger-msg">Se eliminará el lane <strong>{{ laneAEliminar()?.nombre }}</strong>.</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="cancelarEliminar()">Cancelar</button>
+        <button class="btn-danger" (click)="confirmarEliminar()" [disabled]="eliminando()">
+          {{ eliminando() ? 'Eliminando...' : 'Eliminar' }}
+        </button>
+      </div>
     </div>
   </div>
 </div>

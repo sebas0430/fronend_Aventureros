@@ -1,131 +1,146 @@
-<app-navbar></app-navbar>
-<div class="mp-page">
-  <header class="mp-header">
-    <div>
-      <h1 class="mp-title">Mensajes entre Procesos</h1>
-      <p class="mp-subtitle">Configura eventos Message Throw y Catch, lanza mensajes y revisa la trazabilidad.</p>
-    </div>
-  </header>
+<div class="dashboard-container">
+  <app-navbar></app-navbar>
 
-  <div class="mp-error" *ngIf="errorMsg()">{{ errorMsg() }}</div>
-
-  <div class="mp-layout">
-    <!-- Panel Procesos -->
-    <aside class="procesos-panel">
-      <h2 class="panel-title">Procesos</h2>
-      <div class="mp-loading" *ngIf="isLoadingProcesos()"><span class="spinner"></span></div>
-      <div class="proceso-item" *ngFor="let p of procesos()"
-        [class.active]="procesoSeleccionado()?.id === p.id"
-        (click)="seleccionarProceso(p)">
-        <span class="proc-icon">📋</span>
+  <main class="main-content">
+    <div class="mp-page">
+      <header class="mp-header">
         <div>
-          <div class="proc-name">{{ p.nombre }}</div>
-          <div class="proc-cat">{{ p.categoria }}</div>
+          <h1 class="mp-title">Mensajes entre Procesos</h1>
+          <p class="mp-subtitle">Configura eventos Message Throw y Catch, lanza mensajes y revisa la trazabilidad.</p>
         </div>
-      </div>
-    </aside>
+      </header>
 
-    <!-- Panel Eventos -->
-    <main class="eventos-panel" *ngIf="procesoSeleccionado(); else sinProceso">
-      <div class="eventos-header">
-        <h2 class="panel-title2">Eventos de <em>{{ procesoSeleccionado()!.nombre }}</em></h2>
-        <button class="btn-primary" (click)="abrirCrear()">+ Nuevo Evento</button>
-      </div>
+      <div class="mp-error" *ngIf="errorMsg()">{{ errorMsg() }}</div>
 
-      <div class="mp-loading" *ngIf="isLoadingEventos()"><span class="spinner"></span></div>
-
-      <div class="eventos-empty" *ngIf="!isLoadingEventos() && eventos().length === 0">
-        <div>💬</div><p>No hay eventos configurados en este proceso.</p>
-      </div>
-
-      <div class="eventos-list" *ngIf="!isLoadingEventos() && eventos().length > 0">
-        <div class="evento-card" *ngFor="let ev of eventos()">
-          <div class="evento-top">
-            <span class="tipo-badge" [ngClass]="getTipoColor(ev.tipo)">
-              {{ ev.tipo === 'THROW' ? '📤 THROW' : '📥 CATCH' }}
-            </span>
-            <span class="evento-fecha">{{ ev.createdAt | date:'dd/MM/yy' }}</span>
+      <div class="mp-layout">
+        <!-- Panel Procesos -->
+        <aside class="procesos-panel">
+          <h2 class="panel-title">Procesos</h2>
+          <div class="mp-loading" *ngIf="isLoadingProcesos()"><span class="spinner"></span></div>
+          <div class="proceso-item" *ngFor="let p of procesos()"
+            [class.active]="procesoSeleccionado()?.id === p.id"
+            (click)="seleccionarProceso(p)">
+            <span class="proc-icon">📋</span>
+            <div>
+              <div class="proc-name">{{ p.nombre }}</div>
+              <div class="proc-cat">{{ p.categoria }}</div>
+            </div>
           </div>
-          <div class="evento-nombre">{{ ev.nombreMensaje }}</div>
-          <div class="evento-fallback" *ngIf="ev.fallback">Fallback: {{ ev.fallback }}</div>
-          <div class="evento-actions">
-            <button class="btn-launch" *ngIf="ev.tipo === 'THROW'" (click)="abrirLanzar(ev)">🚀 Lanzar</button>
-            <button class="btn-delete" (click)="eliminarEvento(ev)">🗑️</button>
+        </aside>
+
+        <!-- Panel Eventos -->
+        <section class="eventos-panel" *ngIf="procesoSeleccionado(); else sinProceso">
+          <div class="eventos-header">
+            <h2 class="panel-title2">Eventos de <em>{{ procesoSeleccionado()!.nombre }}</em></h2>
+            <button class="btn-primary" (click)="abrirCrear()">+ Nuevo Evento</button>
           </div>
-        </div>
+
+          <div class="mp-loading" *ngIf="isLoadingEventos()"><span class="spinner"></span></div>
+
+          <div class="eventos-empty" *ngIf="!isLoadingEventos() && eventos().length === 0">
+            <div>💬</div><p>No hay eventos configurados en este proceso.</p>
+          </div>
+
+          <div class="eventos-list" *ngIf="!isLoadingEventos() && eventos().length > 0">
+            <div class="evento-card" *ngFor="let ev of eventos()">
+              <div class="evento-top">
+                <span class="tipo-badge" [ngClass]="getTipoColor(ev.tipo)">
+                  {{ ev.tipo === 'THROW' ? '📤 THROW' : '📥 CATCH' }}
+                </span>
+                <span class="evento-fecha">{{ ev.createdAt | date:'dd/MM/yy' }}</span>
+              </div>
+              <div class="evento-nombre">{{ ev.nombreMensaje }}</div>
+              <div class="evento-fallback" *ngIf="ev.fallback">Fallback: {{ ev.fallback }}</div>
+              <div class="evento-actions">
+                <button class="btn-launch" *ngIf="ev.tipo === 'THROW'" (click)="abrirLanzar(ev)">🚀 Lanzar</button>
+                <button class="btn-delete" (click)="eliminarEvento(ev)">🗑️</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Trazabilidad (HU-28) -->
+          <div class="traza-section" *ngIf="catchLogs().length > 0">
+            <h3 class="traza-title">📊 Mensajes Recibidos (Message Catch)</h3>
+            <div class="traza-table">
+              <div class="traza-header-row">
+                <span>Mensaje</span><span>Estado</span><span>Fecha</span>
+              </div>
+              <div class="traza-row" *ngFor="let log of catchLogs()">
+                <span>{{ log.nombreMensaje ?? log.correlacionKey ?? '-' }}</span>
+                <span class="traza-estado">{{ log.estado ?? '-' }}</span>
+                <span>{{ log.creadoEn | date:'dd/MM/yy HH:mm' }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <ng-template #sinProceso>
+          <section class="eventos-panel placeholder">
+            <div>👈</div><p>Selecciona un proceso para gestionar sus mensajes.</p>
+          </section>
+        </ng-template>
       </div>
+    </div>
+  </main>
 
-      <!-- Trazabilidad (HU-28) -->
-      <div class="traza-section" *ngIf="catchLogs().length > 0">
-        <h3 class="traza-title">📊 Mensajes Recibidos (Message Catch)</h3>
-        <div class="traza-table">
-          <div class="traza-header-row">
-            <span>Mensaje</span><span>Estado</span><span>Fecha</span>
-          </div>
-          <div class="traza-row" *ngFor="let log of catchLogs()">
-            <span>{{ log.nombreMensaje ?? log.correlacionKey ?? '-' }}</span>
-            <span class="traza-estado">{{ log.estado ?? '-' }}</span>
-            <span>{{ log.creadoEn | date:'dd/MM/yy HH:mm' }}</span>
-          </div>
-        </div>
+  <!-- Modal crear evento -->
+  <div class="modal-overlay" *ngIf="mostrarModal()" (click)="cerrarModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h2 class="modal-title">Nuevo Evento de Mensaje</h2>
+      <div class="form-group">
+        <label class="modal-label">Nombre del mensaje *</label>
+        <input class="modal-input" type="text" placeholder="ej. pedido-aprobado"
+          [value]="form().nombreMensaje"
+          (input)="setFormField('nombreMensaje', $any($event.target).value)" />
       </div>
-    </main>
-
-    <ng-template #sinProceso>
-      <main class="eventos-panel placeholder">
-        <div>👈</div><p>Selecciona un proceso para gestionar sus mensajes.</p>
-      </main>
-    </ng-template>
-  </div>
-</div>
-
-<!-- Modal crear evento -->
-<div class="modal-overlay" *ngIf="mostrarModal()" (click)="cerrarModal()">
-  <div class="modal-box" (click)="$event.stopPropagation()">
-    <h2 class="modal-title">Nuevo Evento de Mensaje</h2>
-    <label class="modal-label">Nombre del mensaje *</label>
-    <input class="modal-input" type="text" placeholder="ej. pedido-aprobado"
-      [value]="form().nombreMensaje"
-      (input)="setFormField('nombreMensaje', $any($event.target).value)" />
-    <label class="modal-label">Tipo *</label>
-    <select class="modal-input" [value]="form().tipo" (change)="setFormField('tipo', $any($event.target).value)">
-      <option value="THROW">📤 THROW — Lanzar mensaje</option>
-      <option value="CATCH">📥 CATCH — Recibir mensaje</option>
-    </select>
-    <label class="modal-label">Comportamiento si no hay receptor (Fallback)</label>
-    <select class="modal-input" [value]="form().fallback" (change)="setFormField('fallback', $any($event.target).value)">
-      <option *ngFor="let f of fallbacks" [value]="f">{{ f }}</option>
-    </select>
-    <label class="modal-label">Schema del Payload (opcional)</label>
-    <textarea class="modal-textarea" rows="3" placeholder='{ "campo": "string" }'
-      [value]="form().payloadSchema ?? ''"
-      (input)="setFormField('payloadSchema', $any($event.target).value)"></textarea>
-    <div class="modal-actions">
-      <button class="btn-secondary" (click)="cerrarModal()">Cancelar</button>
-      <button class="btn-primary" (click)="guardar()" [disabled]="guardando()">
-        {{ guardando() ? 'Guardando...' : 'Crear Evento' }}
-      </button>
+      <div class="form-group">
+        <label class="modal-label">Tipo *</label>
+        <select class="modal-input" [value]="form().tipo" (change)="setFormField('tipo', $any($event.target).value)">
+          <option value="THROW">📤 THROW — Lanzar mensaje</option>
+          <option value="CATCH">📥 CATCH — Recibir mensaje</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="modal-label">Comportamiento si no hay receptor (Fallback)</label>
+        <select class="modal-input" [value]="form().fallback" (change)="setFormField('fallback', $any($event.target).value)">
+          <option *ngFor="let f of fallbacks" [value]="f">{{ f }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="modal-label">Schema del Payload (opcional)</label>
+        <textarea class="modal-textarea" rows="3" placeholder='{ "campo": "string" }'
+          [value]="form().payloadSchema ?? ''"
+          (input)="setFormField('payloadSchema', $any($event.target).value)"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="cerrarModal()">Cancelar</button>
+        <button class="btn-primary" (click)="guardar()" [disabled]="guardando()">
+          {{ guardando() ? 'Guardando...' : 'Crear Evento' }}
+        </button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Modal lanzar mensaje -->
-<div class="modal-overlay" *ngIf="mostrarLanzar()" (click)="cerrarLanzar()">
-  <div class="modal-box" (click)="$event.stopPropagation()">
-    <h2 class="modal-title">🚀 Lanzar Mensaje</h2>
-    <p class="modal-sub">Evento: <strong>{{ eventoParaLanzar()?.nombreMensaje }}</strong></p>
-    <label class="modal-label">Payload (JSON)</label>
-    <textarea class="modal-textarea" rows="5"
-      [value]="lanzarPayload()"
-      (input)="lanzarPayload.set($any($event.target).value)"></textarea>
-    <div class="lanzar-resultado" *ngIf="resultadoLanzamiento() !== null">
-      ✅ Mensaje enviado. Receptores activados: <strong>{{ resultadoLanzamiento()!.length }}</strong>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-secondary" (click)="cerrarLanzar()">Cerrar</button>
-      <button class="btn-primary" (click)="lanzarMensaje()" [disabled]="lanzando()">
-        {{ lanzando() ? 'Lanzando...' : '🚀 Lanzar' }}
-      </button>
+  <!-- Modal lanzar mensaje -->
+  <div class="modal-overlay" *ngIf="mostrarLanzar()" (click)="cerrarLanzar()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h2 class="modal-title">🚀 Lanzar Mensaje</h2>
+      <p class="modal-sub">Evento: <strong>{{ eventoParaLanzar()?.nombreMensaje }}</strong></p>
+      <div class="form-group">
+        <label class="modal-label">Payload (JSON)</label>
+        <textarea class="modal-textarea" rows="5"
+          [value]="lanzarPayload()"
+          (input)="lanzarPayload.set($any($event.target).value)"></textarea>
+      </div>
+      <div class="lanzar-resultado" *ngIf="resultadoLanzamiento() !== null">
+        ✅ Mensaje enviado. Receptores activados: <strong>{{ resultadoLanzamiento()!.length }}</strong>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="cerrarLanzar()">Cerrar</button>
+        <button class="btn-primary" (click)="lanzarMensaje()" [disabled]="lanzando()">
+          {{ lanzando() ? 'Lanzando...' : '🚀 Lanzar' }}
+        </button>
+      </div>
     </div>
   </div>
 </div>
