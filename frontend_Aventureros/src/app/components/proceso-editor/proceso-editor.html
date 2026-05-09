@@ -132,76 +132,95 @@
         @if (selectedId()) {
           <div class="props-header">
             <h3>Propiedades</h3>
-            <button class="btn-close-props" (click)="seleccionarNodo(null)">✕</button>
+            <button class="btn-close-props" (click)="seleccionarElemento(null)">✕</button>
           </div>
 
           <div class="props-content">
-            <!-- Generic Label editing for all nodes -->
-            <div class="prop-group">
-              <label>Etiqueta / Nombre</label>
-              <input type="text" [value]="selectedNodo()?.label"
-                (input)="updateNodoLabel(selectedNodo()!.id, $any($event.target).value)"
-                placeholder="Nombre del paso">
-            </div>
-
-            <!-- Activity Specific Properties -->
-            @if (selectedNodo()?.tipo === 'actividad' && actividadSeleccionada()) {
-              <div class="prop-divider"></div>
-              
+            
+            <!-- CASE 1: Node Selected -->
+            @if (selectedNodo()) {
               <div class="prop-group">
-                <label>Tipo de Actividad</label>
-                <select [value]="actividadSeleccionada()?.tipoActividad"
-                  (change)="updatePropiedadActividad('tipoActividad', $any($event.target).value)">
-                  @for (t of tiposActividad; track t) {
-                    <option [value]="t">{{ t }}</option>
-                  }
-                </select>
+                <label>Etiqueta / Nombre</label>
+                <input type="text" [value]="selectedNodo()?.label"
+                  (input)="updateNodoLabel(selectedNodo()!.id, $any($event.target).value)"
+                  placeholder="Nombre del paso">
               </div>
 
-              <div class="prop-group">
-                <label>Rol Responsable</label>
-                <select [value]="actividadSeleccionada()?.rolResponsable"
-                  (change)="updatePropiedadActividad('rolResponsable', $any($event.target).value)">
-                  @for (r of rolesGlobales; track r) {
-                    <option [value]="r">{{ r }}</option>
-                  }
-                </select>
-              </div>
+              <!-- Activity Specific -->
+              @if (selectedNodo()?.tipo === 'actividad' && actividadSeleccionada()) {
+                <div class="prop-divider"></div>
+                
+                <div class="prop-group">
+                  <label>Tipo de Actividad</label>
+                  <select [value]="actividadSeleccionada()?.tipoActividad"
+                    (change)="updatePropiedadActividad('tipoActividad', $any($event.target).value)">
+                    @for (t of tiposActividad; track t) {
+                      <option [value]="t">{{ t }}</option>
+                    }
+                  </select>
+                </div>
 
-              <div class="prop-group">
-                <label>Descripción / Instrucciones</label>
-                <textarea rows="4" [value]="actividadSeleccionada()?.descripcion"
-                  (input)="updatePropiedadActividad('descripcion', $any($event.target).value)"
-                  placeholder="Instrucciones detalladas..."></textarea>
-              </div>
+                <div class="prop-group">
+                  <label>Rol Responsable</label>
+                  <select [value]="actividadSeleccionada()?.rolResponsable"
+                    (change)="updatePropiedadActividad('rolResponsable', $any($event.target).value)">
+                    @for (r of rolesGlobales; track r) {
+                      <option [value]="r">{{ r }}</option>
+                    }
+                  </select>
+                </div>
 
-              <div class="props-actions">
-                <button class="btn-save-props" (click)="guardarPropiedadesActividad()" [disabled]="guardando()">
-                  {{ guardando() ? 'Guardando...' : 'Vincular Actividad' }}
-                </button>
-              </div>
-            }
+                <div class="prop-group">
+                  <label>Descripción / Instrucciones</label>
+                  <textarea rows="4" [value]="actividadSeleccionada()?.descripcion"
+                    (input)="updatePropiedadActividad('descripcion', $any($event.target).value)"
+                    placeholder="Instrucciones detalladas..."></textarea>
+                </div>
 
-            <!-- Gateway Specific Properties -->
-            @if (selectedNodo()?.tipo === 'gateway') {
-              <div class="prop-divider"></div>
-              <div class="prop-group">
-                <label>Configuración de Decisión</label>
-                <div class="gateway-types-grid">
-                  <button type="button" [class.active]="selectedNodo()?.gatewayType === 'exclusive'"
-                    (click)="updateGatewayType(selectedNodo()!.id, 'exclusive')">
-                    ✕ <small>Exclusivo</small>
-                  </button>
-                  <button type="button" [class.active]="selectedNodo()?.gatewayType === 'parallel'"
-                    (click)="updateGatewayType(selectedNodo()!.id, 'parallel')">
-                    + <small>Paralelo</small>
-                  </button>
-                  <button type="button" [class.active]="selectedNodo()?.gatewayType === 'inclusive'"
-                    (click)="updateGatewayType(selectedNodo()!.id, 'inclusive')">
-                    ○ <small>Inclusivo</small>
+                <div class="props-actions">
+                  <button class="btn-save-props" (click)="guardarPropiedadesActividad()" [disabled]="guardando()">
+                    {{ guardando() ? 'Guardando...' : 'Vincular Actividad' }}
                   </button>
                 </div>
-                <p class="prop-hint">Los gateways definen cómo se divide o une el flujo de trabajo.</p>
+              }
+
+              <!-- Gateway Specific -->
+              @if (selectedNodo()?.tipo === 'gateway') {
+                <div class="prop-divider"></div>
+                <div class="prop-group">
+                  <label>Configuración de Decisión</label>
+                  <div class="gateway-types-grid">
+                    <button type="button" [class.active]="selectedNodo()?.gatewayType === 'exclusive'"
+                      (click)="updateGatewayType(selectedNodo()!.id, 'exclusive')">
+                      ✕ <small>Exclusivo</small>
+                    </button>
+                    <button type="button" [class.active]="selectedNodo()?.gatewayType === 'parallel'"
+                      (click)="updateGatewayType(selectedNodo()!.id, 'parallel')">
+                      + <small>Paralelo</small>
+                    </button>
+                    <button type="button" [class.active]="selectedNodo()?.gatewayType === 'inclusive'"
+                      (click)="updateGatewayType(selectedNodo()!.id, 'inclusive')">
+                      ○ <small>Inclusivo</small>
+                    </button>
+                  </div>
+                  <p class="prop-hint">Los gateways definen cómo se divide o une el flujo de trabajo.</p>
+                </div>
+              }
+            }
+
+            <!-- CASE 2: Connection Selected -->
+            @if (selectedConexion()) {
+              <div class="prop-group">
+                <label>Etiqueta del Flujo</label>
+                <input type="text" [value]="selectedConexion()?.label"
+                  (input)="updateConexionLabel(selectedConexion()!.id, $any($event.target).value)"
+                  placeholder="Ej: Sí / No / Aprobado">
+                <p class="prop-hint">Este texto aparecerá sobre la flecha del flujo.</p>
+              </div>
+
+              <div class="prop-info-box">
+                <p><b>Origen:</b> {{ selectedConexionSource()?.label }}</p>
+                <p><b>Destino:</b> {{ selectedConexionTarget()?.label }}</p>
               </div>
             }
 

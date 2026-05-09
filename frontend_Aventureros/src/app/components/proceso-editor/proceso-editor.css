@@ -269,3 +269,23 @@ canvas {
   text-align: center; color: #475569; font-size: 0.85rem; padding: 40px;
   line-height: 1.6;
 }
+.prop-info-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+.prop-info-box p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+.prop-info-box b {
+  color: #6366f1;
+  font-weight: 600;
+  margin-right: 4px;
+}

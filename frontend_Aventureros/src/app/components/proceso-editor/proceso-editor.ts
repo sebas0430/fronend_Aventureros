@@ -70,6 +70,18 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
   selectedNodo = computed(() => this.nodos().find(n => n.id === this.selectedId()) || null);
   selectedConexion = computed(() => this.conexiones().find(c => c.id === this.selectedId()) || null);
 
+  // Helper signals for connection endpoints (avoids complex logic in template)
+  selectedConexionSource = computed(() => {
+    const c = this.selectedConexion();
+    if (!c) return null;
+    return this.nodos().find(n => n.id === c.desde) || null;
+  });
+  selectedConexionTarget = computed(() => {
+    const c = this.selectedConexion();
+    if (!c) return null;
+    return this.nodos().find(n => n.id === c.hasta) || null;
+  });
+
   readonly TOOLS: { id: NodoBpmnTipo | 'cursor' | 'conector'; label: string; icon: string }[] = [
     { id: 'cursor',    label: 'Seleccionar',  icon: '↖' },
     { id: 'inicio',    label: 'Inicio',        icon: '●' },
@@ -272,9 +284,31 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
     if (!from || !to) return;
     const start = this.getPoint(from, to);
     const end = this.getPoint(to, from);
+    const selected = this.selectedId() === c.id;
+    const hovered = this.hoveredId === c.id;
+
+    ctx.save();
     ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(end.x, end.y);
-    ctx.strokeStyle = 'rgba(148,163,184,0.4)'; ctx.lineWidth = 2; ctx.stroke();
-    this.drawArrowhead(ctx, end.x, end.y, Math.atan2(end.y - start.y, end.x - start.x));
+    
+    if (selected) {
+      ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 4;
+      ctx.setLineDash([6, 4]); ctx.stroke(); ctx.setLineDash([]);
+    } else if (hovered) {
+      ctx.strokeStyle = 'rgba(148,163,184,0.8)'; ctx.lineWidth = 3; ctx.stroke();
+    } else {
+      ctx.strokeStyle = 'rgba(148,163,184,0.4)'; ctx.lineWidth = 2; ctx.stroke();
+    }
+    
+    this.drawArrowhead(ctx, end.x, end.y, Math.atan2(end.y - start.y, end.x - start.x), selected ? '#fbbf24' : 'rgba(148,163,184,0.6)');
+
+    // Draw label if exists
+    if (c.label) {
+      const midX = (start.x + end.x) / 2;
+      const midY = (start.y + end.y) / 2;
+      ctx.fillStyle = '#fff'; ctx.font = '500 10px Inter, system-ui'; ctx.textAlign = 'center';
+      ctx.fillText(c.label, midX, midY - 8);
+    }
+    ctx.restore();
   }
 
   private getPoint(n: NodoBpmn, target: {x:number, y:number}) {
@@ -292,10 +326,10 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
     return { cx: n.x + (n.tipo==='actividad'?80 : n.tipo==='gateway'?40:30), cy: n.y + 30 };
   }
 
-  private drawArrowhead(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number) {
+  private drawArrowhead(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, color: string) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
     ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-10, -5); ctx.lineTo(-10, 5); ctx.closePath();
-    ctx.fillStyle = 'rgba(148,163,184,0.6)'; ctx.fill(); ctx.restore();
+    ctx.fillStyle = color; ctx.fill(); ctx.restore();
   }
 
   private drawWrappedText(ctx: CanvasRenderingContext2D, text: string, x: number, cy: number, maxW: number, lineH: number) {
@@ -313,9 +347,17 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
   private hitTest(mx: number, my: number): string | null {
     const sx = (mx - this.panX()) / this.scale();
     const sy = (my - this.panY()) / this.scale();
+    
+    // 1. Check nodes first (priority)
     for (const n of [...this.nodos()].reverse()) {
       if (this.isInsideNodo(n, sx, sy)) return n.id;
     }
+    
+    // 2. Check connections (lines)
+    for (const c of this.conexiones()) {
+      if (this.isNearLine(c, sx, sy)) return c.id;
+    }
+    
     return null;
   }
 
@@ -326,11 +368,30 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
     return Math.hypot(sx - cx, sy - cy) <= r;
   }
 
+  private isNearLine(c: ConexionBpmn, sx: number, sy: number): boolean {
+    const from = this.nodos().find(n => n.id === c.desde);
+    const to = this.nodos().find(n => n.id === c.hasta);
+    if (!from || !to) return false;
+    const p1 = this.getPoint(from, to);
+    const p2 = this.getPoint(to, from);
+    
+    const dist = this.distToSegment({ x: sx, y: sy }, p1, p2);
+    return dist < 8; // Tolerance of 8 pixels
+  }
+
+  private distToSegment(p: {x:number, y:number}, v: {x:number, y:number}, w: {x:number, y:number}) {
+    const l2 = Math.pow(v.x - w.x, 2) + Math.pow(v.y - w.y, 2);
+    if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
+    let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
+  }
+
   onCanvasMouseDown(e: MouseEvent) {
     const id = this.hitTest(e.offsetX, e.offsetY);
     const tool = this.toolActivo();
     if (tool === 'conector') {
-      if (id) {
+      if (id && this.nodos().some(n => n.id === id)) {
         if (!this.conectandoDesde) this.conectandoDesde = id;
         else if (id !== this.conectandoDesde) { this.addConexion(this.conectandoDesde, id); this.conectandoDesde = null; }
       } else this.conectandoDesde = null;
@@ -338,11 +399,14 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
     }
     if (tool === 'cursor') {
       if (id) {
-        this.seleccionarNodo(id); this.draggingId = id;
-        const n = this.nodos().find(x => x.id === id)!;
-        this.dragOffsetX = (e.offsetX - this.panX()) / this.scale() - n.x;
-        this.dragOffsetY = (e.offsetY - this.panY()) / this.scale() - n.y;
-      } else { this.seleccionarNodo(null); this.panning = true; this.panStartX = e.clientX - this.panX(); this.panStartY = e.clientY - this.panY(); }
+        this.seleccionarElemento(id);
+        if (this.nodos().some(n => n.id === id)) {
+          this.draggingId = id;
+          const n = this.nodos().find(x => x.id === id)!;
+          this.dragOffsetX = (e.offsetX - this.panX()) / this.scale() - n.x;
+          this.dragOffsetY = (e.offsetY - this.panY()) / this.scale() - n.y;
+        }
+      } else { this.seleccionarElemento(null); this.panning = true; this.panStartX = e.clientX - this.panX(); this.panStartY = e.clientY - this.panY(); }
       return;
     }
     if (!id) {
@@ -371,27 +435,34 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
 
   onCanvasDblClick(e: MouseEvent) {
     const id = this.hitTest(e.offsetX, e.offsetY);
-    if (id) this.seleccionarNodo(id);
+    if (id) this.seleccionarElemento(id);
   }
 
   private addNodo(tipo: NodoBpmnTipo, x: number, y: number) {
     const labels: Record<NodoBpmnTipo, string> = { inicio: 'Inicio', fin: 'Fin', actividad: 'Nueva actividad', gateway: 'Decisión' };
-    const nuevo: NodoBpmn = { id: `${tipo}-${Date.now()}`, tipo, label: labels[tipo], x, y };
+    const nuevoId = `${tipo}-${Date.now()}`;
+    const nuevo: NodoBpmn = { id: nuevoId, tipo, label: labels[tipo], x, y };
     if (tipo === 'gateway') nuevo.gatewayType = 'exclusive';
     this.nodos.update(l => [...l, nuevo]);
+    this.seleccionarElemento(nuevoId);
+    this.toolActivo.set('cursor');
   }
 
   private addConexion(desde: string, hasta: string) {
     if (this.conexiones().some(c => c.desde === desde && c.hasta === hasta)) return;
-    this.conexiones.update(l => [...l, { id: `c-${Date.now()}`, desde, hasta }]);
+    const nuevoId = `c-${Date.now()}`;
+    this.conexiones.update(l => [...l, { id: nuevoId, desde, hasta }]);
+    this.seleccionarElemento(nuevoId);
   }
 
   borrarSeleccionado() {
     const id = this.selectedId();
     if (!id) return;
+    // Remove if it's a node
     this.nodos.update(l => l.filter(n => n.id !== id));
-    this.conexiones.update(l => l.filter(c => c.desde !== id && c.hasta !== id));
-    this.seleccionarNodo(null);
+    // Remove if it's a connection
+    this.conexiones.update(l => l.filter(c => c.id !== id && c.desde !== id && c.hasta !== id));
+    this.seleccionarElemento(null);
   }
 
   @HostListener('window:keydown', ['$event'])
@@ -399,7 +470,7 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
     if ((e.key === 'Delete' || e.key === 'Backspace') && !['INPUT','TEXTAREA'].includes((document.activeElement as HTMLElement)?.tagName)) {
       this.borrarSeleccionado();
     }
-    if (e.key === 'Escape') { this.seleccionarNodo(null); this.conectandoDesde = null; }
+    if (e.key === 'Escape') { this.seleccionarElemento(null); this.conectandoDesde = null; }
   }
 
   zoomIn()  { this.scale.update(s => Math.min(s * 1.15, 3)); }
@@ -417,9 +488,10 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
     });
   }
 
-  seleccionarNodo(id: string | null) {
+  seleccionarElemento(id: string | null) {
     this.selectedId.set(id);
     if (!id) { this.actividadSeleccionada.set(null); return; }
+    
     const nodo = this.nodos().find(n => n.id === id);
     if (nodo && nodo.tipo === 'actividad') {
       if (nodo.actividadId) {
@@ -434,7 +506,9 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
           procesoId: this.proceso()!.id, usuarioId: this.authService.getUsuario()!.id
         });
       }
-    } else this.actividadSeleccionada.set(null);
+    } else {
+      this.actividadSeleccionada.set(null);
+    }
   }
 
   updatePropiedadActividad(campo: string, valor: any) {
@@ -478,5 +552,8 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
   }
   updateGatewayType(id: string, type: 'exclusive' | 'parallel' | 'inclusive') {
     this.nodos.update(list => list.map(n => n.id === id ? { ...n, gatewayType: type } : n));
+  }
+  updateConexionLabel(id: string, label: string) {
+    this.conexiones.update(list => list.map(c => c.id === id ? { ...c, label } : c));
   }
 }
