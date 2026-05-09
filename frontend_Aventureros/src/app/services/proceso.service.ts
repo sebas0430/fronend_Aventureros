@@ -42,6 +42,10 @@ export class ProcesoService {
     });
   }
 
+  editarProceso(id: number, dto: any): Observable<Proceso> {
+    return this.http.put<Proceso>(`${this.apiUrl}/${id}`, dto);
+  }
+
   // ── Compartición con Pools ──────────────────────────────────
   compartirProceso(id: number, dto: ProcesoCompartirDTO): Observable<ProcesoCompartirDTO> {
     return this.http.post<ProcesoCompartirDTO>(`${this.apiUrl}/${id}/compartir`, dto);

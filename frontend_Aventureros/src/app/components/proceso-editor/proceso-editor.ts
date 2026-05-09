@@ -1,6 +1,6 @@
 import {
   Component, signal, inject, OnInit, AfterViewInit,
-  ElementRef, ViewChild, HostListener, OnDestroy, PLATFORM_ID
+  ElementRef, ViewChild, HostListener, OnDestroy, PLATFORM_ID, computed
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -59,12 +59,17 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
   private panStartX = 0;
   private panStartY = 0;
 
+
   // ── Properties Panel ────────────────────────────────────────
   actividadesProceso = signal<ActividadRegistroDTO[]>([]);
   actividadSeleccionada = signal<ActividadRegistroDTO | null>(null);
   cargandoPropiedades = signal(false);
   rolesGlobales = Object.values(RolGlobal);
   tiposActividad = ['TASK', 'SERVICE', 'USER', 'MANUAL'];
+  // Selected element derived state
+  selectedNodo = computed(() => this.nodos().find(n => n.id === this.selectedId()) || null);
+  selectedConexion = computed(() => this.conexiones().find(c => c.id === this.selectedId()) || null);
+
 
   readonly TOOLS: { id: NodoBpmnTipo | 'cursor' | 'conector'; label: string; icon: string }[] = [
     { id: 'cursor',    label: 'Seleccionar',  icon: '↖' },
@@ -239,16 +244,73 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
       if (Math.abs(target.x - cx) > Math.abs(target.y - cy)) return { x: target.x > cx ? n.x + 160 : n.x, y: cy };
       return { x: cx, y: target.y > cy ? n.y + 60 : n.y };
     }
+<<<<<<< HEAD
     const offset = n.tipo === 'gateway' ? 40 : 30;
     const r = n.tipo === 'gateway' ? 34 : 24;
     const angle = Math.atan2(target.y - (n.y + 30), target.x - (n.x + offset));
     return { x: n.x + offset + Math.cos(angle) * r, y: n.y + 30 + Math.sin(angle) * r };
+=======
+
+    switch (n.tipo) {
+      case 'inicio':
+        this.drawCircle(ctx, n.x + 30, n.y + 30, 28, '#22c55e', hovered || isConectando);
+        ctx.fillStyle = '#fff'; ctx.font = '600 11px Inter, system-ui'; ctx.textAlign = 'center';
+        ctx.fillText(n.label, n.x + 30, n.y + 68);
+        break;
+      case 'fin':
+        this.drawCircle(ctx, n.x + 30, n.y + 30, 28, '#ef4444', hovered || isConectando);
+        ctx.beginPath(); ctx.arc(n.x + 30, n.y + 30, 20, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(239,68,68,0.5)'; ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.font = '600 11px Inter, system-ui'; ctx.textAlign = 'center';
+        ctx.fillText(n.label, n.x + 30, n.y + 68);
+        break;
+      case 'actividad':
+        this.drawRoundRect(ctx, n.x, n.y, 160, 60, 12, '#4f46e5', hovered || isConectando);
+        ctx.fillStyle = '#f1f5f9'; ctx.font = '600 13px Inter, system-ui'; ctx.textAlign = 'center';
+        this.drawWrappedText(ctx, n.label, n.x + 80, n.y + 30, 140, 18);
+        break;
+      case 'gateway':
+        this.drawDiamond(ctx, n.x + 40, n.y + 30, 36, '#f59e0b', hovered || isConectando);
+        this.drawGatewaySymbol(ctx, n.x + 40, n.y + 30, n.gatewayType);
+        ctx.fillStyle = '#fff'; ctx.font = '600 10px Inter, system-ui'; ctx.textAlign = 'center';
+        ctx.fillText(n.label, n.x + 40, n.y + 78);
+        break;
+    }
+    ctx.restore();
+>>>>>>> f97fe84247bedc62d2aade8c3c8938fdd7661ec1
   }
 
   private drawArrowhead(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
     ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-10, -5); ctx.lineTo(-10, 5); ctx.closePath();
     ctx.fillStyle = 'rgba(148,163,184,0.6)'; ctx.fill(); ctx.restore();
+  }
+
+  private drawGatewaySymbol(ctx: CanvasRenderingContext2D, cx: number, cy: number, type?: string) {
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    
+    if (type === 'exclusive') {
+      // Dibujar una X
+      const s = 10;
+      ctx.beginPath();
+      ctx.moveTo(cx - s, cy - s); ctx.lineTo(cx + s, cy + s);
+      ctx.moveTo(cx + s, cy - s); ctx.lineTo(cx - s, cy + s);
+      ctx.stroke();
+    } else if (type === 'parallel') {
+      // Dibujar un +
+      const s = 12;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - s); ctx.lineTo(cx, cy + s);
+      ctx.moveTo(cx - s, cy); ctx.lineTo(cx + s, cy);
+      ctx.stroke();
+    } else if (type === 'inclusive') {
+      // Dibujar un O (círculo)
+      ctx.beginPath();
+      ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+      ctx.stroke();
+    }
   }
 
   private drawWrappedText(ctx: CanvasRenderingContext2D, text: string, x: number, cy: number, maxW: number, lineH: number) {
@@ -298,8 +360,17 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
       return;
     }
     if (!id) {
+<<<<<<< HEAD
       const sx = (e.offsetX - this.panX()) / this.scale(), sy = (e.offsetY - this.panY()) / this.scale();
       this.addNodo(this.toolActivo() as NodoBpmnTipo, sx - 80, sy - 30);
+=======
+      const sx = (e.offsetX - this.panX()) / this.scale();
+      const sy = (e.offsetY - this.panY()) / this.scale();
+      this.addNodo(tool as NodoBpmnTipo, sx - 80, sy - 30);
+      
+      // Volver automáticamente al cursor para poder mover/editar el nuevo nodo
+      this.toolActivo.set('cursor');
+>>>>>>> f97fe84247bedc62d2aade8c3c8938fdd7661ec1
     }
   }
 
@@ -327,8 +398,26 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   private addNodo(tipo: NodoBpmnTipo, x: number, y: number) {
+<<<<<<< HEAD
     const labels: Record<NodoBpmnTipo, string> = { inicio: 'Inicio', fin: 'Fin', actividad: 'Nueva actividad', gateway: 'Decisión' };
     this.nodos.update(l => [...l, { id: `${tipo}-${Date.now()}`, tipo, label: labels[tipo], x, y }]);
+=======
+    const labels: Record<NodoBpmnTipo, string> = {
+      inicio: 'Inicio', fin: 'Fin', actividad: 'Nueva actividad', gateway: 'Decisión'
+    };
+    const nuevoId = `${tipo}-${Date.now()}`;
+    
+    this.nodos.update(l => [...l, {
+      id: nuevoId, 
+      tipo, 
+      label: labels[tipo], 
+      x, y,
+      gatewayType: tipo === 'gateway' ? 'exclusive' : undefined
+    }]);
+
+    // Seleccionarlo automáticamente para que se abra el panel de propiedades
+    this.selectedId.set(nuevoId);
+>>>>>>> f97fe84247bedc62d2aade8c3c8938fdd7661ec1
   }
 
   private addConexion(desde: string, hasta: string) {
@@ -421,4 +510,17 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
   private mostrarMensaje(msg: string) { this.mensaje.set(msg); setTimeout(() => this.mensaje.set(''), 3000); }
   volverALista() { this.router.navigate(['/procesos']); }
   getZoomPercent(): number { return Math.round(this.scale() * 100); }
+
+  // ── Propiedades ────────────────────────────────────────────────
+  updateNodoLabel(id: string, label: string) {
+    this.nodos.update(list => list.map(n => n.id === id ? { ...n, label } : n));
+  }
+
+  updateGatewayType(id: string, type: 'exclusive' | 'parallel' | 'inclusive') {
+    this.nodos.update(list => list.map(n => n.id === id ? { ...n, gatewayType: type } : n));
+  }
+
+  updateConexionLabel(id: string, label: string) {
+    this.conexiones.update(list => list.map(c => c.id === id ? { ...c, label } : c));
+  }
 }
