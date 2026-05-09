@@ -7,16 +7,21 @@ import { Empresa } from '../models/usuario.model';
   providedIn: 'root'
 })
 export class EmpresaService {
+
   private http = inject(HttpClient);
+
   private apiUrl = 'http://localhost:8080/api/empresas';
 
   obtenerEmpresa(id: number): Observable<Empresa> {
     return this.http.get<Empresa>(`${this.apiUrl}/${id}`);
   }
+
   registrarEmpresa(data: any) {
-  return this.http.post(`${this.apiUrl}/empresas`, data);
+    return this.http.post(this.apiUrl, data);
   }
+
   editarEmpresa(id: number, data: any) {
-  return this.http.put(`${this.apiUrl}/empresas/${id}`, data);
+    return this.http.put(`${this.apiUrl}/${id}`, data);
   }
+
 }
