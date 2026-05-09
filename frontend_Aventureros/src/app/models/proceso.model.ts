@@ -42,3 +42,12 @@ export interface DefinicionBpmn {
   nodos: NodoBpmn[];
   conexiones: ConexionBpmn[];
 }
+
+// ── Compartición con Pools ─────────────────────────────────────
+export type PermisoCompartido = 'LECTURA' | 'LECTURA_ESCRITURA';
+
+export interface ProcesoCompartirDTO {
+  poolDestinoId: number;
+  permiso: PermisoCompartido;
+  usuarioId: number;
+}

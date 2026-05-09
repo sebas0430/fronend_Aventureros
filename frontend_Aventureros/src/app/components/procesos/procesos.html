@@ -29,6 +29,11 @@
       }
     </div>
 
+    <!-- Success Banner -->
+    @if (successMessage()) {
+      <div class="success-banner" id="success-banner">✅ {{ successMessage() }}</div>
+    }
+
     <!-- Loading -->
     @if (isLoading()) {
       <div class="loading-state">
@@ -66,13 +71,72 @@
               <div class="proceso-meta">
                 <span class="categoria-tag">🏷️ {{ p.categoria }}</span>
               </div>
-              <button class="btn-abrir" (click)="abrirEditor(p)" [id]="'btn-editar-' + p.id">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
-                </svg>
-                Abrir editor BPMN
-              </button>
+
+              <!-- Botones de acción -->
+              <div class="card-actions">
+                <!-- Abrir editor (solo BORRADOR) -->
+                @if (p.estado === 'BORRADOR') {
+                  <button class="btn-abrir" (click)="abrirEditor(p)" [id]="'btn-editar-' + p.id">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
+                    </svg>
+                    Editar BPMN
+                  </button>
+                }
+
+                <!-- Ver (solo lectura para PUBLICADO e INACTIVO) -->
+                @if (p.estado === 'PUBLICADO' || p.estado === 'INACTIVO') {
+                  <button class="btn-ver" (click)="abrirEditor(p)" [id]="'btn-ver-' + p.id">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    Ver proceso
+                  </button>
+                }
+
+                <!-- Publicar (BORRADOR → PUBLICADO) -->
+                @if (p.estado === 'BORRADOR') {
+                  <button class="btn-publicar" (click)="solicitarCambioEstado(p, 'PUBLICADO')"
+                    [id]="'btn-publicar-' + p.id">
+                    🚀 Publicar
+                  </button>
+                }
+
+                <!-- Compartir (solo PUBLICADO) -->
+                @if (p.estado === 'PUBLICADO') {
+                  <button class="btn-compartir" (click)="abrirModalCompartir(p)"
+                    [id]="'btn-compartir-' + p.id">
+                    🤝 Compartir con Pool
+                  </button>
+                }
+
+                <!-- Inhabilitar (PUBLICADO → INACTIVO) -->
+                @if (p.estado === 'PUBLICADO') {
+                  <button class="btn-inactivar" (click)="solicitarCambioEstado(p, 'INACTIVO')"
+                    [id]="'btn-inactivar-' + p.id">
+                    🔒 Inhabilitar
+                  </button>
+                }
+
+                <!-- Reactivar (INACTIVO → BORRADOR) -->
+                @if (p.estado === 'INACTIVO') {
+                  <button class="btn-reactivar" (click)="solicitarCambioEstado(p, 'BORRADOR')"
+                    [id]="'btn-reactivar-' + p.id">
+                    ♻️ Reactivar
+                  </button>
+                }
+
+                <!-- Volver a Borrador (PUBLICADO → BORRADOR) -->
+                @if (p.estado === 'PUBLICADO') {
+                  <button class="btn-despublicar" (click)="solicitarCambioEstado(p, 'BORRADOR')"
+                    [id]="'btn-despublicar-' + p.id">
+                    ✏️ Volver a Borrador
+                  </button>
+                }
+              </div>
             </div>
           }
         </div>
@@ -80,7 +144,7 @@
     }
   </main>
 
-  <!-- Modal Crear Proceso -->
+  <!-- ═══════ Modal Crear Proceso ═══════ -->
   @if (mostrarModal()) {
     <div class="modal-overlay" (click)="cerrarModal()" id="modal-overlay">
       <div class="modal" (click)="$event.stopPropagation()" id="modal-crear-proceso">
@@ -121,6 +185,91 @@
             [disabled]="!form().nombre || !form().descripcion || !form().categoria || guardando()"
             (click)="crearProceso()">
             {{ guardando() ? 'Creando...' : '🚀 Crear Proceso' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══════ Modal Confirmar Cambio de Estado ═══════ -->
+  @if (mostrarConfirmEstado()) {
+    <div class="modal-overlay" (click)="cerrarConfirmEstado()" id="modal-overlay-estado">
+      <div class="modal modal-sm" (click)="$event.stopPropagation()" id="modal-confirm-estado">
+        <div class="modal-header">
+          <h2>{{ getEstadoDestinoLabel() }}</h2>
+          <button class="modal-close" (click)="cerrarConfirmEstado()">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="confirm-proceso-nombre">{{ procesoConfirmEstado()?.nombre }}</p>
+          <p class="confirm-desc">{{ getEstadoDestinoDescripcion() }}</p>
+          <div class="confirm-transition">
+            <span class="estado-badge" [ngClass]="getEstadoColor(procesoConfirmEstado()?.estado ?? 'BORRADOR')">
+              {{ procesoConfirmEstado()?.estado }}
+            </span>
+            <span class="transition-arrow">→</span>
+            <span class="estado-badge" [ngClass]="getEstadoColor(estadoDestino() ?? 'BORRADOR')">
+              {{ estadoDestino() }}
+            </span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancelar" (click)="cerrarConfirmEstado()">Cancelar</button>
+          <button class="btn-confirmar" [disabled]="guardando()" (click)="confirmarCambioEstado()"
+            id="btn-confirmar-estado">
+            {{ guardando() ? 'Procesando...' : 'Confirmar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══════ Modal Compartir con Pool ═══════ -->
+  @if (mostrarModalCompartir()) {
+    <div class="modal-overlay" (click)="cerrarModalCompartir()" id="modal-overlay-compartir">
+      <div class="modal" (click)="$event.stopPropagation()" id="modal-compartir">
+        <div class="modal-header">
+          <h2>🤝 Compartir Proceso</h2>
+          <button class="modal-close" (click)="cerrarModalCompartir()">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="compartir-proceso-titulo">
+            Compartir "<strong>{{ procesoParaCompartir()?.nombre }}</strong>" con un Pool
+          </p>
+
+          @if (loadingPools()) {
+            <div class="loading-state-inline">
+              <div class="loading-spinner-sm"></div>
+              <span>Cargando pools...</span>
+            </div>
+          } @else {
+            <div class="form-group">
+              <label for="inp-pool-destino">Pool destino</label>
+              <select id="inp-pool-destino" class="form-input form-select"
+                [value]="compartirForm().poolDestinoId"
+                (change)="campoCompartir('poolDestinoId', $any($event.target).value)">
+                <option [value]="0" disabled>Selecciona un Pool</option>
+                @for (pool of poolsEmpresa(); track pool.id) {
+                  <option [value]="pool.id">{{ pool.nombre }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="inp-permiso">Nivel de permiso</label>
+              <select id="inp-permiso" class="form-input form-select"
+                [value]="compartirForm().permiso"
+                (change)="campoCompartir('permiso', $any($event.target).value)">
+                <option value="LECTURA">📖 Solo lectura</option>
+                <option value="LECTURA_ESCRITURA">✏️ Lectura y escritura</option>
+              </select>
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancelar" (click)="cerrarModalCompartir()">Cancelar</button>
+          <button class="btn-confirmar" id="btn-confirmar-compartir"
+            [disabled]="!compartirForm().poolDestinoId || compartiendo() || loadingPools()"
+            (click)="compartirProceso()">
+            {{ compartiendo() ? 'Compartiendo...' : '🤝 Compartir' }}
           </button>
         </div>
       </div>
