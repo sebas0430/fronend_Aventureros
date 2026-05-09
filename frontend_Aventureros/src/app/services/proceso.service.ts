@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Proceso, CrearProcesoRequest } from '../models/proceso.model';
+import { Proceso, CrearProcesoRequest, ProcesoCompartirDTO } from '../models/proceso.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProcesoService {
@@ -40,5 +40,24 @@ export class ProcesoService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`, {
       params: new HttpParams().set('usuarioId', usuarioId)
     });
+  }
+
+  // ── Compartición con Pools ──────────────────────────────────
+  compartirProceso(id: number, dto: ProcesoCompartirDTO): Observable<ProcesoCompartirDTO> {
+    return this.http.post<ProcesoCompartirDTO>(`${this.apiUrl}/${id}/compartir`, dto);
+  }
+
+  quitarComparticion(id: number, poolDestinoId: number, usuarioId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}/compartir/${poolDestinoId}`, {
+      params: new HttpParams().set('usuarioId', usuarioId)
+    });
+  }
+
+  // ── Filtrado por estado / categoría ─────────────────────────
+  filtrarProcesos(empresaId: number, estado?: string, categoria?: string): Observable<Proceso[]> {
+    let params = new HttpParams();
+    if (estado) params = params.set('estado', estado);
+    if (categoria) params = params.set('categoria', categoria);
+    return this.http.get<Proceso[]>(`${this.apiUrl}/empresa/${empresaId}`, { params });
   }
 }
