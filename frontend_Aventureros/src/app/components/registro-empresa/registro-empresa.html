@@ -1,0 +1,56 @@
+<div class="register-container">
+
+  <div class="register-card">
+
+    <div class="header">
+      <h1>Crear Empresa</h1>
+      <p>Registra tu organización y crea el administrador principal</p>
+    </div>
+    <form [formGroup]="form" (ngSubmit)="registrar()">
+
+      <div class="section-title">
+        Datos de la Empresa
+      </div>
+
+      <div class="input-group">
+        <label>Nombre empresa</label>
+        <input type="text" formControlName="nombre">
+      </div>
+
+      <div class="input-group">
+        <label>NIT</label>
+        <input type="text" formControlName="nit">
+      </div>
+      <div class="section-title">
+        Usuario Administrador
+      </div>
+
+      <div class="input-group">
+        <label>Correo</label>
+        <input type="email" formControlName="correoContacto">
+      </div>
+
+      <div class="input-group">
+        <label>Contraseña</label>
+        <input type="password" formControlName="passwordAdmin">
+      </div>
+      <div class="input-group">
+        <label>Confirmar contraseña</label>
+        <input type="password" formControlName="confirmPassword">
+      </div>
+
+      <div *ngIf="error" class="error-box">
+        {{ error }}
+      </div>
+
+      <button
+        class="register-btn"
+        type="submit"
+        [disabled]="loading">
+
+        {{ loading ? 'Creando...' : 'Crear empresa' }}
+
+      </button>
+    </form>
+    </div>
+</div>  
