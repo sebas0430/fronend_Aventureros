@@ -9,12 +9,14 @@ import { LanesComponent } from './components/lanes/lanes';
 import { RolesPoolAdminComponent } from './components/roles-pool-admin/roles-pool-admin';
 import { MensajesProcesoComponent } from './components/mensajes-proceso/mensajes-proceso';
 import { ConectoresComponent } from './components/conectores/conectores';
+import { ActividadesComponent } from './components/actividades/actividades';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: 'login',          component: LoginComponent },
   { path: 'empleados',      component: EmpleadosComponent,       canActivate: [authGuard] },
   { path: 'procesos',       component: ProcesosComponent,        canActivate: [authGuard] },
+  { path: 'procesos/:id/actividades', component: ActividadesComponent, canActivate: [authGuard] },
   { path: 'editor/:id',     component: ProcesoEditorComponent,   canActivate: [authGuard] },
   { path: 'pools',          component: PoolsComponent,           canActivate: [authGuard] },
   { path: 'registro-empresa', loadComponent: () =>

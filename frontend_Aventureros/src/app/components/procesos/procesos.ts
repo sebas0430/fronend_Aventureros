@@ -14,7 +14,7 @@ import { NavbarComponent } from '../navbar/navbar';
 @Component({
   selector: 'app-procesos',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent],
+  imports: [CommonModule, FormsModule, NavbarComponent, RouterLink],
   templateUrl: './procesos.html',
   styleUrl: './procesos.css'
 })

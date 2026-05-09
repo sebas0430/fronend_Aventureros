@@ -136,6 +136,11 @@
                     ✏️ Volver a Borrador
                   </button>
                 }
+
+                <!-- Gestión de Actividades -->
+                <button class="btn-tareas" [routerLink]="['/procesos', p.id, 'actividades']" [id]="'btn-tareas-' + p.id">
+                  📝 Tareas
+                </button>
               </div>
             </div>
           }

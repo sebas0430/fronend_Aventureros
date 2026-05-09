@@ -30,6 +30,7 @@ export interface NodoBpmn {
   label: string;
   x: number;
   y: number;
+  actividadId?: number; // Vínculo con la entidad Actividad en DB
 }
 
 export interface ConexionBpmn {

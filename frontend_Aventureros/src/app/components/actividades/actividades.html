@@ -1,0 +1,125 @@
+<div class="dashboard-container">
+  <app-navbar></app-navbar>
+
+  <main class="main-content">
+    <div class="actividades-page">
+      <header class="actividades-header">
+        <div class="header-left">
+          <button class="btn-back" (click)="volverProcesos()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+            </svg>
+            Volver
+          </button>
+          <div>
+            <h1 class="actividades-title">Actividades del Proceso</h1>
+            <p class="actividades-subtitle" *ngIf="proceso()">
+              Gestionando el flujo de: <strong>{{ proceso()?.nombre }}</strong>
+            </p>
+          </div>
+        </div>
+        <button class="btn-primary" (click)="abrirCrear()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Nueva Actividad
+        </button>
+      </header>
+
+      <div class="alert-error" *ngIf="errorMessage()">{{ errorMessage() }}</div>
+      <div class="alert-success" *ngIf="successMessage()">{{ successMessage() }}</div>
+
+      <div class="loading-state" *ngIf="isLoading()">
+        <span class="spinner"></span> Cargando actividades...
+      </div>
+
+      <div class="empty-state" *ngIf="!isLoading() && actividades().length === 0">
+        <div class="empty-icon">📝</div>
+        <p>No hay actividades configuradas para este proceso.</p>
+        <button class="btn-secondary" (click)="abrirCrear()">Crear la primera actividad</button>
+      </div>
+
+      <div class="actividades-grid" *ngIf="!isLoading() && actividades().length > 0">
+        <div class="actividad-card" *ngFor="let act of actividades()">
+          <div class="act-order">#{{ act.orden }}</div>
+          <div class="act-content">
+            <div class="act-header">
+              <h3 class="act-name">{{ act.nombre }}</h3>
+              <span class="act-type">{{ act.tipoActividad }}</span>
+            </div>
+            <p class="act-desc">{{ act.descripcion }}</p>
+            <div class="act-footer">
+              <span class="act-role">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+                {{ act.rolResponsable }}
+              </span>
+              <div class="act-actions">
+                <button class="btn-icon" (click)="abrirEditar(act)" title="Editar">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+                <button class="btn-icon btn-danger" (click)="eliminar(act)" title="Eliminar">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal Crear/Editar -->
+  <div class="modal-overlay" *ngIf="mostrarModal()" (click)="cerrarModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">{{ modoEdicion() ? 'Editar Actividad' : 'Nueva Actividad' }}</h2>
+        <button class="btn-close" (click)="cerrarModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input type="text" [value]="form().nombre" (input)="setFormField('nombre', $any($event.target).value)" placeholder="Ej: Revisar solicitud">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo *</label>
+            <select [value]="form().tipoActividad" (change)="setFormField('tipoActividad', $any($event.target).value)">
+              <option *ngFor="let t of tiposActividad" [value]="t">{{ t }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Orden</label>
+            <input type="number" [value]="form().orden" (input)="setFormField('orden', $any($event.target).value)">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Rol Responsable *</label>
+          <select [value]="form().rolResponsable" (change)="setFormField('rolResponsable', $any($event.target).value)">
+            <option *ngFor="let r of rolesGlobales" [value]="r">{{ r }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Descripción *</label>
+          <textarea [value]="form().descripcion" (input)="setFormField('descripcion', $any($event.target).value)" rows="3" placeholder="Describe qué se hace en esta tarea..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="cerrarModal()">Cancelar</button>
+        <button class="btn-primary" (click)="guardar()" [disabled]="guardando()">
+          {{ guardando() ? 'Guardando...' : (modoEdicion() ? 'Guardar Cambios' : 'Crear Actividad') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

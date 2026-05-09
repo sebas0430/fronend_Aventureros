@@ -235,7 +235,29 @@
   background: rgba(234,179,8,0.08); border-color: rgba(234,179,8,0.15); color: #facc15;
 }
 .btn-despublicar:hover {
-  background: rgba(234,179,8,0.15); border-color: rgba(234,179,8,0.3);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-tareas {
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-tareas:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: #6366f1;
   transform: translateY(-1px);
 }
 

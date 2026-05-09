@@ -127,6 +127,68 @@
         </div>
       </div>
 
+      <!-- Properties Panel (Right Sidebar) -->
+      <aside class="properties-panel" [class.open]="selectedId() !== null">
+        @if (selectedId()) {
+          <div class="props-header">
+            <h3>Propiedades</h3>
+            <button class="btn-close-props" (click)="seleccionarNodo(null)">✕</button>
+          </div>
+
+          <div class="props-content">
+            @if (actividadSeleccionada()) {
+              <div class="prop-group">
+                <label>Nombre de Actividad</label>
+                <input type="text" [value]="actividadSeleccionada()?.nombre"
+                  (input)="updatePropiedadActividad('nombre', $any($event.target).value)"
+                  placeholder="Ej: Revisar documentación">
+              </div>
+
+              <div class="prop-group">
+                <label>Tipo de Actividad</label>
+                <select [value]="actividadSeleccionada()?.tipoActividad"
+                  (change)="updatePropiedadActividad('tipoActividad', $any($event.target).value)">
+                  @for (t of tiposActividad; track t) {
+                    <option [value]="t">{{ t }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="prop-group">
+                <label>Rol Responsable</label>
+                <select [value]="actividadSeleccionada()?.rolResponsable"
+                  (change)="updatePropiedadActividad('rolResponsable', $any($event.target).value)">
+                  @for (r of rolesGlobales; track r) {
+                    <option [value]="r">{{ r }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="prop-group">
+                <label>Descripción / Instrucciones</label>
+                <textarea rows="4" [value]="actividadSeleccionada()?.descripcion"
+                  (input)="updatePropiedadActividad('descripcion', $any($event.target).value)"
+                  placeholder="Instrucciones detalladas para esta actividad..."></textarea>
+              </div>
+
+              <div class="props-actions">
+                <button class="btn-save-props" (click)="guardarPropiedadesActividad()" [disabled]="guardando()">
+                  {{ guardando() ? 'Guardando...' : 'Aplicar Cambios' }}
+                </button>
+              </div>
+            } @else {
+              <div class="no-props-msg">
+                <p>Este elemento no requiere configuración adicional.</p>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-props">
+            <p>Selecciona un elemento para ver sus propiedades</p>
+          </div>
+        }
+      </aside>
+
     </div>
   }
 </div>
