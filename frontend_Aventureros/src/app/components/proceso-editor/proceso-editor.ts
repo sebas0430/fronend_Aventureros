@@ -10,6 +10,8 @@ import { AuthService } from '../../services/auth.service';
 import { Proceso, NodoBpmn, NodoBpmnTipo, ConexionBpmn, DefinicionBpmn } from '../../models/proceso.model';
 import { ActividadService } from '../../services/actividad.service';
 import { ActividadRegistroDTO, RolGlobal } from '../../models/actividad.model';
+import { DocumentoService } from '../../services/documento.service';
+import { DocumentoDTO } from '../../models/documento.model';
 
 @Component({
   selector: 'app-proceso-editor',
@@ -27,6 +29,7 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
   private procesoService = inject(ProcesoService);
   private authService = inject(AuthService);
   private actividadService = inject(ActividadService);
+  private documentoService = inject(DocumentoService);
   private platformId = inject(PLATFORM_ID);
 
   proceso = signal<Proceso | null>(null);
@@ -37,6 +40,11 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
 
   nodos = signal<NodoBpmn[]>([]);
   conexiones = signal<ConexionBpmn[]>([]);
+  
+  // Documentos
+  documentos = signal<DocumentoDTO[]>([]);
+  subiendoDoc = signal(false);
+  mostrandoDocumentos = signal(false);
 
   // Drag state
   private draggingId: string | null = null;
@@ -103,6 +111,7 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
         this.cargarDefinicion(p.definicionJson);
         this.isLoading.set(false);
         this.cargarActividades(id);
+        this.cargarDocumentos(id);
         if (isPlatformBrowser(this.platformId)) {
           setTimeout(() => this.initCanvas(), 100);
         }
@@ -115,6 +124,13 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
     this.actividadService.listarPorProceso(procesoId).subscribe({
       next: (list) => this.actividadesProceso.set(list),
       error: () => console.error('Error al cargar actividades')
+    });
+  }
+
+  private cargarDocumentos(procesoId: number) {
+    this.documentoService.listarPorProceso(procesoId).subscribe({
+      next: (docs) => this.documentos.set(docs),
+      error: () => console.error('Error al cargar documentos')
     });
   }
 
@@ -490,6 +506,7 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
 
   seleccionarElemento(id: string | null) {
     this.selectedId.set(id);
+    if (id) this.mostrandoDocumentos.set(false);
     if (!id) { this.actividadSeleccionada.set(null); return; }
     
     const nodo = this.nodos().find(n => n.id === id);
@@ -555,5 +572,54 @@ export class ProcesoEditorComponent implements OnInit, AfterViewInit, OnDestroy 
   }
   updateConexionLabel(id: string, label: string) {
     this.conexiones.update(list => list.map(c => c.id === id ? { ...c, label } : c));
+  }
+
+  // ── Documentos ────────────────────────────────────────────────
+  onArchivoSeleccionado(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const archivo = input.files[0];
+    const pid = this.proceso()?.id;
+    if (!pid) return;
+
+    this.subiendoDoc.set(true);
+    this.documentoService.subirDocumento(pid, archivo).subscribe({
+      next: (doc) => {
+        this.documentos.update(list => [...list, doc]);
+        this.subiendoDoc.set(false);
+        this.mostrarMensaje('📄 Archivo subido exitosamente');
+        input.value = ''; // Reset input
+      },
+      error: () => {
+        this.subiendoDoc.set(false);
+        this.mostrarMensaje('❌ Error al subir archivo');
+        input.value = '';
+      }
+    });
+  }
+
+  eliminarDocumento(docId: number) {
+    if (!confirm('¿Seguro que deseas eliminar este documento?')) return;
+    this.documentoService.eliminarDocumento(docId).subscribe({
+      next: () => {
+        this.documentos.update(list => list.filter(d => d.id !== docId));
+        this.mostrarMensaje('🗑️ Documento eliminado');
+      },
+      error: () => this.mostrarMensaje('❌ Error al eliminar documento')
+    });
+  }
+
+  getDownloadUrl(docId: number): string {
+    return this.documentoService.getDownloadUrl(docId);
+  }
+
+  abrirDocumentos() {
+    this.seleccionarElemento(null);
+    this.mostrandoDocumentos.set(true);
+  }
+
+  cerrarPanel() {
+    this.seleccionarElemento(null);
+    this.mostrandoDocumentos.set(false);
   }
 }

@@ -24,6 +24,9 @@
         @if (mensaje()) {
           <span class="save-msg">{{ mensaje() }}</span>
         }
+        <button class="btn-documentos" (click)="abrirDocumentos()" [class.active]="mostrandoDocumentos() && !selectedId()" title="Ver documentos del proceso">
+          📄 Documentos
+        </button>
         <button class="btn-guardar" id="btn-guardar" (click)="guardar()" [disabled]="guardando()">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -128,107 +131,141 @@
       </div>
 
       <!-- Properties Panel (Right Sidebar) -->
-      <aside class="properties-panel" [class.open]="selectedId() !== null">
-        @if (selectedId()) {
+      <aside class="properties-panel" [class.open]="selectedId() !== null || mostrandoDocumentos()">
+        @if (selectedId() || mostrandoDocumentos()) {
           <div class="props-header">
-            <h3>Propiedades</h3>
-            <button class="btn-close-props" (click)="seleccionarElemento(null)">✕</button>
+            <h3>{{ selectedId() ? 'Propiedades' : 'Documentos del Proceso' }}</h3>
+            <button class="btn-close-props" (click)="cerrarPanel()">✕</button>
           </div>
 
           <div class="props-content">
             
             <!-- CASE 1: Node Selected -->
-            @if (selectedNodo()) {
-              <div class="prop-group">
-                <label>Etiqueta / Nombre</label>
-                <input type="text" [value]="selectedNodo()?.label"
-                  (input)="updateNodoLabel(selectedNodo()!.id, $any($event.target).value)"
-                  placeholder="Nombre del paso">
-              </div>
-
-              <!-- Activity Specific -->
-              @if (selectedNodo()?.tipo === 'actividad' && actividadSeleccionada()) {
-                <div class="prop-divider"></div>
-                
+            @if (selectedId()) {
+              @if (selectedNodo()) {
                 <div class="prop-group">
-                  <label>Tipo de Actividad</label>
-                  <select [value]="actividadSeleccionada()?.tipoActividad"
-                    (change)="updatePropiedadActividad('tipoActividad', $any($event.target).value)">
-                    @for (t of tiposActividad; track t) {
-                      <option [value]="t">{{ t }}</option>
-                    }
-                  </select>
+                  <label>Etiqueta / Nombre</label>
+                  <input type="text" [value]="selectedNodo()?.label"
+                    (input)="updateNodoLabel(selectedNodo()!.id, $any($event.target).value)"
+                    placeholder="Nombre del paso">
                 </div>
 
-                <div class="prop-group">
-                  <label>Rol Responsable</label>
-                  <select [value]="actividadSeleccionada()?.rolResponsable"
-                    (change)="updatePropiedadActividad('rolResponsable', $any($event.target).value)">
-                    @for (r of rolesGlobales; track r) {
-                      <option [value]="r">{{ r }}</option>
-                    }
-                  </select>
-                </div>
+                <!-- Activity Specific -->
+                @if (selectedNodo()?.tipo === 'actividad' && actividadSeleccionada()) {
+                  <div class="prop-divider"></div>
+                  
+                  <div class="prop-group">
+                    <label>Tipo de Actividad</label>
+                    <select [value]="actividadSeleccionada()?.tipoActividad"
+                      (change)="updatePropiedadActividad('tipoActividad', $any($event.target).value)">
+                      @for (t of tiposActividad; track t) {
+                        <option [value]="t">{{ t }}</option>
+                      }
+                    </select>
+                  </div>
 
-                <div class="prop-group">
-                  <label>Descripción / Instrucciones</label>
-                  <textarea rows="4" [value]="actividadSeleccionada()?.descripcion"
-                    (input)="updatePropiedadActividad('descripcion', $any($event.target).value)"
-                    placeholder="Instrucciones detalladas..."></textarea>
-                </div>
+                  <div class="prop-group">
+                    <label>Rol Responsable</label>
+                    <select [value]="actividadSeleccionada()?.rolResponsable"
+                      (change)="updatePropiedadActividad('rolResponsable', $any($event.target).value)">
+                      @for (r of rolesGlobales; track r) {
+                        <option [value]="r">{{ r }}</option>
+                      }
+                    </select>
+                  </div>
 
-                <div class="props-actions">
-                  <button class="btn-save-props" (click)="guardarPropiedadesActividad()" [disabled]="guardando()">
-                    {{ guardando() ? 'Guardando...' : 'Vincular Actividad' }}
-                  </button>
-                </div>
-              }
+                  <div class="prop-group">
+                    <label>Descripción / Instrucciones</label>
+                    <textarea rows="4" [value]="actividadSeleccionada()?.descripcion"
+                      (input)="updatePropiedadActividad('descripcion', $any($event.target).value)"
+                      placeholder="Instrucciones detalladas..."></textarea>
+                  </div>
 
-              <!-- Gateway Specific -->
-              @if (selectedNodo()?.tipo === 'gateway') {
-                <div class="prop-divider"></div>
-                <div class="prop-group">
-                  <label>Configuración de Decisión</label>
-                  <div class="gateway-types-grid">
-                    <button type="button" [class.active]="selectedNodo()?.gatewayType === 'exclusive'"
-                      (click)="updateGatewayType(selectedNodo()!.id, 'exclusive')">
-                      ✕ <small>Exclusivo</small>
-                    </button>
-                    <button type="button" [class.active]="selectedNodo()?.gatewayType === 'parallel'"
-                      (click)="updateGatewayType(selectedNodo()!.id, 'parallel')">
-                      + <small>Paralelo</small>
-                    </button>
-                    <button type="button" [class.active]="selectedNodo()?.gatewayType === 'inclusive'"
-                      (click)="updateGatewayType(selectedNodo()!.id, 'inclusive')">
-                      ○ <small>Inclusivo</small>
+                  <div class="props-actions">
+                    <button class="btn-save-props" (click)="guardarPropiedadesActividad()" [disabled]="guardando()">
+                      {{ guardando() ? 'Guardando...' : 'Vincular Actividad' }}
                     </button>
                   </div>
-                  <p class="prop-hint">Los gateways definen cómo se divide o une el flujo de trabajo.</p>
+                }
+
+                <!-- Gateway Specific -->
+                @if (selectedNodo()?.tipo === 'gateway') {
+                  <div class="prop-divider"></div>
+                  <div class="prop-group">
+                    <label>Configuración de Decisión</label>
+                    <div class="gateway-types-grid">
+                      <button type="button" [class.active]="selectedNodo()?.gatewayType === 'exclusive'"
+                        (click)="updateGatewayType(selectedNodo()!.id, 'exclusive')">
+                        ✕ <small>Exclusivo</small>
+                      </button>
+                      <button type="button" [class.active]="selectedNodo()?.gatewayType === 'parallel'"
+                        (click)="updateGatewayType(selectedNodo()!.id, 'parallel')">
+                        + <small>Paralelo</small>
+                      </button>
+                      <button type="button" [class.active]="selectedNodo()?.gatewayType === 'inclusive'"
+                        (click)="updateGatewayType(selectedNodo()!.id, 'inclusive')">
+                        ○ <small>Inclusivo</small>
+                      </button>
+                    </div>
+                    <p class="prop-hint">Los gateways definen cómo se divide o une el flujo de trabajo.</p>
+                  </div>
+                }
+              }
+
+              <!-- CASE 2: Connection Selected -->
+              @if (selectedConexion()) {
+                <div class="prop-group">
+                  <label>Etiqueta del Flujo</label>
+                  <input type="text" [value]="selectedConexion()?.label"
+                    (input)="updateConexionLabel(selectedConexion()!.id, $any($event.target).value)"
+                    placeholder="Ej: Sí / No / Aprobado">
+                  <p class="prop-hint">Este texto aparecerá sobre la flecha del flujo.</p>
+                </div>
+
+                <div class="prop-info-box">
+                  <p><b>Origen:</b> {{ selectedConexionSource()?.label }}</p>
+                  <p><b>Destino:</b> {{ selectedConexionTarget()?.label }}</p>
                 </div>
               }
-            }
 
-            <!-- CASE 2: Connection Selected -->
-            @if (selectedConexion()) {
-              <div class="prop-group">
-                <label>Etiqueta del Flujo</label>
-                <input type="text" [value]="selectedConexion()?.label"
-                  (input)="updateConexionLabel(selectedConexion()!.id, $any($event.target).value)"
-                  placeholder="Ej: Sí / No / Aprobado">
-                <p class="prop-hint">Este texto aparecerá sobre la flecha del flujo.</p>
+              <div class="sidebar-footer">
+                <button class="btn-delete-node" (click)="borrarSeleccionado()">
+                  🗑️ Eliminar Elemento
+                </button>
               </div>
 
-              <div class="prop-info-box">
-                <p><b>Origen:</b> {{ selectedConexionSource()?.label }}</p>
-                <p><b>Destino:</b> {{ selectedConexionTarget()?.label }}</p>
+            } @else if (mostrandoDocumentos()) {
+              
+              <!-- Documentos Generales del Proceso -->
+              <p class="prop-hint" style="margin-top: 0">Archivos de referencia general para este proceso.</p>
+              
+              <div class="docs-list">
+                @for (doc of documentos(); track doc.id) {
+                  <div class="doc-item">
+                    <div class="doc-icon">📄</div>
+                    <div class="doc-info">
+                      <span class="doc-name" [title]="doc.nombreArchivo">{{ doc.nombreArchivo }}</span>
+                      <span class="doc-date">{{ doc.createdAt | date:'shortDate' }}</span>
+                    </div>
+                    <div class="doc-actions">
+                      <a [href]="getDownloadUrl(doc.id)" target="_blank" class="btn-icon" title="Descargar">⬇️</a>
+                      <button class="btn-icon text-red" (click)="eliminarDocumento(doc.id)" title="Eliminar">✕</button>
+                    </div>
+                  </div>
+                }
+                @if (documentos().length === 0) {
+                  <div class="empty-docs">No hay documentos adjuntos.</div>
+                }
               </div>
-            }
 
-            <div class="sidebar-footer">
-              <button class="btn-delete-node" (click)="borrarSeleccionado()">
-                🗑️ Eliminar Elemento
-              </button>
-            </div>
+              <div class="upload-section">
+                <label class="btn-upload" [class.disabled]="subiendoDoc()">
+                  {{ subiendoDoc() ? 'Subiendo...' : '➕ Subir Documento' }}
+                  <input type="file" (change)="onArchivoSeleccionado($event)" [disabled]="subiendoDoc()" hidden>
+                </label>
+              </div>
+
+            }
           </div>
         } @else {
           <div class="empty-props">
