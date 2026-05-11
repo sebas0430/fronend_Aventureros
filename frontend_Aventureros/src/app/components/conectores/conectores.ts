@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NotificacionExternaService } from '../../services/notificacion-externa.service';
@@ -11,7 +11,7 @@ import { ConectorExterno, EnvioExterno, NotificacionExterna, TipoConectorExterno
 @Component({
   selector: 'app-conectores',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent],
+  imports: [FormsModule, NavbarComponent],
   templateUrl: './conectores.html',
   styleUrl: './conectores.css'
 })
@@ -59,9 +59,18 @@ export class ConectoresComponent implements OnInit {
 
   cargar() {
     this.isLoading.set(true);
+    console.log('[Conectores] Cargando conectores para empresaId:', this.empresaId);
     this.svc.listarConectores(this.empresaId).subscribe({
-      next: (d) => { this.conectores.set(d); this.isLoading.set(false); },
-      error: () => { this.errorMsg.set('No se pudieron cargar los conectores.'); this.isLoading.set(false); }
+      next: (d) => {
+        console.log('[Conectores] Respuesta backend:', d);
+        this.conectores.set(d);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('[Conectores] Error HTTP:', err.status, err.message, err);
+        this.errorMsg.set(`Error ${err.status || ''}: No se pudieron cargar los conectores.`);
+        this.isLoading.set(false);
+      }
     });
   }
 

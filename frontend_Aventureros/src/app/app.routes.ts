@@ -23,12 +23,6 @@ export const routes: Routes = [
     import('./components/registro-empresa/registro-empresa')
       .then(m => m.RegistroEmpresa)
   },
-  {
-  path: 'configuracion-empresa',
-  loadComponent: () =>
-    import('./components/configuracion-empresa/configuracion-empresa')
-      .then(m => m.ConfiguracionEmpresa)
-},
   { path: 'roles-proceso',  component: RolesProcesoComponent,    canActivate: [authGuard] },
   { path: 'lanes',          component: LanesComponent,           canActivate: [authGuard] },
   { path: 'roles-pool',     component: RolesPoolAdminComponent,  canActivate: [authGuard] },

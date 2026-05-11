@@ -1,11 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-.con-page { min-height:calc(100vh - 64px); background:linear-gradient(135deg,#0f0f1a,#1a1a2e,#16213e); padding:2.5rem 2rem; font-family:'Inter',system-ui,sans-serif; color:#e2e8f0; }
+.dashboard-container { display:flex; min-height:100vh; background:linear-gradient(135deg,#0f0c29 0%,#1a1a2e 50%,#16213e 100%); font-family:'Inter',system-ui,sans-serif; color:#e2e8f0; }
+.con-page { flex:1; overflow-y:auto; padding:2.5rem 2rem; }
 .con-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:2rem; flex-wrap:wrap; gap:1rem; }
 .con-title { font-size:2rem; font-weight:700; background:linear-gradient(135deg,#22d3ee,#818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin:0 0 0.25rem; }
 .con-subtitle { color:#94a3b8; font-size:.9rem; margin:0; }
 .con-error { background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.3); color:#fca5a5; padding:.75rem 1rem; border-radius:10px; margin-bottom:1.5rem; }
 .con-loading { display:flex; align-items:center; gap:.6rem; color:#64748b; padding:3rem; justify-content:center; }
-.con-empty { text-align:center; padding:5rem 1rem; color:#475569; }
+.con-empty { text-align:center; padding:5rem 1rem; color:#94a3b8; }
 .empty-icon { font-size:3.5rem; margin-bottom:1rem; }
 .con-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.5rem; }
 .con-card { background:rgba(255,255,255,.04); border:1px solid rgba(34,211,238,.12); border-radius:16px; padding:1.5rem; display:flex; flex-direction:column; gap:.9rem; transition:border-color .2s,transform .2s; }
