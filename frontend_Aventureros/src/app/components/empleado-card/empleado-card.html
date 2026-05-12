@@ -7,7 +7,6 @@
   <div class="card-body">
     <h3 class="employee-email">{{ emp.correo }}</h3>
     <div class="employee-meta">
-      <span class="badge" [ngClass]="getRolBadgeClass(emp.rol)">{{ getRolGlobal(emp.rol) }}</span>
       <span class="status-label" [class.active-text]="emp.activo">
         {{ emp.activo ? 'Activo' : 'Inactivo' }}
       </span>
