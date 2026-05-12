@@ -59,7 +59,6 @@
         <div class="user-avatar-sm">{{ getInitials(usuarioLogueado()!.correo) }}</div>
         <div class="user-info">
           <span class="user-email">{{ usuarioLogueado()!.correo }}</span>
-          <span class="user-rol">{{ getRolLabel(usuarioLogueado()!.rol) }}</span>
         </div>
       </div>
       <button class="logout-btn" (click)="logout()" id="btn-logout" [title]="isCollapsed() ? 'Salir' : ''">
