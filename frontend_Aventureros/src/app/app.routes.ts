@@ -36,12 +36,14 @@ export const routes: Routes = [
         .then(m => m.RegistroEmpresa)
   },
 
-  // ─── Rutas de ADMINISTRADOR_EMPRESA únicamente ───────────────────────────
+  // ─── Rutas de ADMINISTRADOR_EMPRESA y Administradores de Pool ────────
   {
     path: 'empleados',
     component: EmpleadosComponent,
-    canActivate: [authGuard, roleGuard(['ADMINISTRADOR_EMPRESA'])]
+    canActivate: [authGuard] // El componente verifica internamente si es Admin de Empresa o Admin de Pool
   },
+
+  // ─── Rutas de ADMINISTRADOR_EMPRESA únicamente ───────────────────────────
   {
     path: 'roles-proceso',
     component: RolesProcesoComponent,

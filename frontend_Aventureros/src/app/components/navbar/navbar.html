@@ -23,12 +23,16 @@
         <span class="nav-text" *ngIf="!isCollapsed()">Procesos</span>
       </a>
 
-      <!-- ── Solo ADMINISTRADOR_EMPRESA ────────────────────────────────── -->
-      @if (authService.tieneRol('ADMINISTRADOR_EMPRESA')) {
+      <!-- ── Solo ADMINISTRADOR_EMPRESA o Administrador de Pool ────────── -->
+      @if (authService.tieneRol('ADMINISTRADOR_EMPRESA') || isPoolAdmin()) {
         <a routerLink="/empleados" class="nav-link" routerLinkActive="active" title="Equipo">
           <span class="nav-icon">👥</span>
           <span class="nav-text" *ngIf="!isCollapsed()">Equipo</span>
         </a>
+      }
+
+      <!-- ── Solo ADMINISTRADOR_EMPRESA ────────────────────────────────── -->
+      @if (authService.tieneRol('ADMINISTRADOR_EMPRESA')) {
         <a routerLink="/roles-proceso" class="nav-link" routerLinkActive="active" title="Roles Proceso">
           <span class="nav-icon">🔑</span>
           <span class="nav-text" *ngIf="!isCollapsed()">Roles Proceso</span>
