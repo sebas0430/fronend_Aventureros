@@ -42,7 +42,13 @@ export class LoginComponent {
 
       next: () => {
         this.isLoading.set(false);
-        this.router.navigate(['/empleados']);
+        // Redirigir según el rol: los admins van a empleados, los demás a procesos.
+        const rol = this.authService.getRol();
+        if (rol === 'ADMINISTRADOR_EMPRESA') {
+          this.router.navigate(['/empleados']);
+        } else {
+          this.router.navigate(['/procesos']);
+        }
       },
 
       error: (err) => {

@@ -7,7 +7,7 @@ import { EmpresaService } from '../../services/empresa.service';
 import { PoolService } from '../../services/pool.service';
 import { RolPoolService } from '../../services/rol-pool.service';
 import { AuthService } from '../../services/auth.service';
-import { Usuario } from '../../models/usuario.model';
+import { Usuario, RolGlobal } from '../../models/usuario.model';
 import { Pool } from '../../models/pool.model';
 import { RolPool } from '../../models/rol-pool.model';
 import { InvitarUsuarioComponent } from '../invitar-usuario/invitar-usuario';
@@ -290,7 +290,7 @@ export class EmpleadosComponent implements OnInit {
     this.usuarioService.cambiarRol(empleado.id, nuevoRol).subscribe({
       next: () => {
         this.empleados.update(lista =>
-          lista.map(e => e.id === empleado.id ? { ...e, rol: nuevoRol } : e)
+          lista.map(e => e.id === empleado.id ? { ...e, rol: nuevoRol as RolGlobal } : e)
         );
       },
       error: (err) => {

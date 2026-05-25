@@ -16,40 +16,51 @@
 
   <div class="sidebar-content">
     <div class="nav-section">
-      <a routerLink="/empleados" class="nav-link" routerLinkActive="active" title="Equipo">
-        <span class="nav-icon">👥</span>
-        <span class="nav-text" *ngIf="!isCollapsed()">Equipo</span>
+
+      <!-- ── Procesos: visible para todos los roles ─────────────────────── -->
+      <a routerLink="/procesos" class="nav-link" routerLinkActive="active" title="Procesos">
+        <span class="nav-icon">📋</span>
+        <span class="nav-text" *ngIf="!isCollapsed()">Procesos</span>
       </a>
-      @if (usuarioLogueado()?.rol === 'ADMINISTRADOR_EMPRESA') {
-        <a routerLink="/pools" class="nav-link" routerLinkActive="active" title="Pools">
-          <span class="nav-icon">🏢</span>
-          <span class="nav-text" *ngIf="!isCollapsed()">Pools</span>
+
+      <!-- ── Solo ADMINISTRADOR_EMPRESA ────────────────────────────────── -->
+      @if (authService.tieneRol('ADMINISTRADOR_EMPRESA')) {
+        <a routerLink="/empleados" class="nav-link" routerLinkActive="active" title="Equipo">
+          <span class="nav-icon">👥</span>
+          <span class="nav-text" *ngIf="!isCollapsed()">Equipo</span>
+        </a>
+        <a routerLink="/roles-proceso" class="nav-link" routerLinkActive="active" title="Roles Proceso">
+          <span class="nav-icon">🔑</span>
+          <span class="nav-text" *ngIf="!isCollapsed()">Roles Proceso</span>
         </a>
         <a routerLink="/roles-pool" class="nav-link" routerLinkActive="active" title="Roles Pool">
           <span class="nav-icon">🛡️</span>
           <span class="nav-text" *ngIf="!isCollapsed()">Roles Pool</span>
         </a>
       }
-      <a routerLink="/procesos" class="nav-link" routerLinkActive="active" title="Procesos">
-        <span class="nav-icon">📋</span>
-        <span class="nav-text" *ngIf="!isCollapsed()">Procesos</span>
-      </a>
-      <a routerLink="/roles-proceso" class="nav-link" routerLinkActive="active" title="Roles Proceso">
-        <span class="nav-icon">🔑</span>
-        <span class="nav-text" *ngIf="!isCollapsed()">Roles Proceso</span>
-      </a>
-      <a routerLink="/lanes" class="nav-link" routerLinkActive="active" title="Lanes">
-        <span class="nav-icon">🛣️</span>
-        <span class="nav-text" *ngIf="!isCollapsed()">Lanes</span>
-      </a>
+
+      <!-- ── ADMINISTRADOR_EMPRESA y EDITOR ─────────────────────────────── -->
+      @if (authService.tieneRol('ADMINISTRADOR_EMPRESA', 'EDITOR')) {
+        <a routerLink="/pools" class="nav-link" routerLinkActive="active" title="Pools">
+          <span class="nav-icon">🏢</span>
+          <span class="nav-text" *ngIf="!isCollapsed()">Pools</span>
+        </a>
+        <a routerLink="/lanes" class="nav-link" routerLinkActive="active" title="Lanes">
+          <span class="nav-icon">🛣️</span>
+          <span class="nav-text" *ngIf="!isCollapsed()">Lanes</span>
+        </a>
+        <a routerLink="/conectores" class="nav-link" routerLinkActive="active" title="Conectores">
+          <span class="nav-icon">🔌</span>
+          <span class="nav-text" *ngIf="!isCollapsed()">Conectores</span>
+        </a>
+      }
+
+      <!-- ── Mensajes: visible para todos los roles ──────────────────────── -->
       <a routerLink="/mensajes" class="nav-link" routerLinkActive="active" title="Mensajes">
         <span class="nav-icon">💬</span>
         <span class="nav-text" *ngIf="!isCollapsed()">Mensajes</span>
       </a>
-      <a routerLink="/conectores" class="nav-link" routerLinkActive="active" title="Conectores">
-        <span class="nav-icon">🔌</span>
-        <span class="nav-text" *ngIf="!isCollapsed()">Conectores</span>
-      </a>
+
     </div>
   </div>
 

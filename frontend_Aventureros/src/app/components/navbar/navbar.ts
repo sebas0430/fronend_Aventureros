@@ -2,6 +2,7 @@ import { Component, signal, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { EmpresaService } from '../../services/empresa.service';
+import { AuthService } from '../../services/auth.service';
 import { Usuario } from '../../models/usuario.model';
 
 @Component({
@@ -13,8 +14,10 @@ import { Usuario } from '../../models/usuario.model';
 })
 export class NavbarComponent implements OnInit {
   private empresaService = inject(EmpresaService);
-  private router = inject(Router);
-  private platformId = inject(PLATFORM_ID);
+  private router         = inject(Router);
+  private platformId     = inject(PLATFORM_ID);
+  // Expuesto como public para poder usarlo directamente en el template HTML.
+  authService            = inject(AuthService);
 
   usuarioLogueado = signal<Usuario | null>(null);
   nombreEmpresa = signal('Cargando...');
@@ -40,15 +43,17 @@ export class NavbarComponent implements OnInit {
   }
 
   logout() {
-    if (isPlatformBrowser(this.platformId)) localStorage.removeItem('usuario');
+    // Usamos el AuthService para cerrar sesión correctamente (limpia todo y resetea el signal).
+    this.authService.logout();
     this.router.navigate(['/login']);
   }
 
   getRolLabel(rol: string): string {
+    // Roles reales del sistema (coinciden con el enum RolGlobal del backend).
     const roles: Record<string, string> = {
       ADMINISTRADOR_EMPRESA: 'Administrador',
-      EMPLEADO: 'Empleado',
-      SUPERVISOR: 'Supervisor'
+      EDITOR:                'Editor',
+      SOLO_LECTURA:          'Solo Lectura'
     };
     return roles[rol] ?? rol;
   }
