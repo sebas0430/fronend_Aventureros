@@ -35,8 +35,10 @@ export class RegistroEmpresa {
     });
   }
   registrar() {
+    this.error = ''; // Limpiar errores anteriores
 
     if (this.form.invalid) {
+      this.error = 'Por favor, completa todos los campos correctamente (correo válido, contraseña mín. 6 caracteres).';
       this.form.markAllAsTouched();
       return;
     }

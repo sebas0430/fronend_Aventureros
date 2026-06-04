@@ -1,7 +1,7 @@
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { catchError, switchMap, throwError, filter, take } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
 /**
@@ -37,19 +37,36 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         // Si hay un token guardado, intentamos renovarlo.
         // (Si no hay token, el backend está rechazando por otra razón → logout directo.)
         if (tokenActual) {
-          return authService.refreshToken().pipe(
-            switchMap((respuesta) => {
-              // Refresh exitoso: reintentamos la petición original con el token nuevo.
-              const reqReintentar = agregarToken(req, respuesta.token);
-              return next(reqReintentar);
-            }),
-            catchError((errorRefresh) => {
-              // El refresh también falló (token inválido o sesión expirada definitivamente).
-              authService.logout();
-              router.navigate(['/login']);
-              return throwError(() => errorRefresh);
-            })
-          );
+          if (!authService.isRefreshing) {
+            authService.isRefreshing = true;
+            authService.refreshTokenSubject.next(null);
+
+            return authService.refreshToken().pipe(
+              switchMap((respuesta) => {
+                authService.isRefreshing = false;
+                authService.refreshTokenSubject.next(respuesta.token);
+                // Refresh exitoso: reintentamos la petición original con el token nuevo.
+                const reqReintentar = agregarToken(req, respuesta.token);
+                return next(reqReintentar);
+              }),
+              catchError((errorRefresh) => {
+                authService.isRefreshing = false;
+                // El refresh también falló (token inválido o sesión expirada definitivamente).
+                authService.logout();
+                router.navigate(['/login']);
+                return throwError(() => errorRefresh);
+              })
+            );
+          } else {
+            // Si ya se está refrescando, esperamos a que se emita un token válido
+            return authService.refreshTokenSubject.pipe(
+              filter(token => token !== null),
+              take(1),
+              switchMap((token) => {
+                return next(agregarToken(req, token));
+              })
+            );
+          }
         }
 
         // Sin token → sesión inválida, mandamos al login.

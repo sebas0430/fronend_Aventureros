@@ -1,6 +1,6 @@
 import { Injectable, inject, PLATFORM_ID, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, map, catchError, throwError } from 'rxjs';
+import { Observable, tap, map, catchError, throwError, BehaviorSubject } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
 import { Usuario, RolGlobal, LoginRequest, LoginResponse } from '../models/usuario.model';
 
@@ -15,16 +15,19 @@ export class AuthService {
   /** Signal reactivo con el usuario logueado (null si no hay sesión) */
   usuarioActual = signal<Usuario | null>(this.cargarUsuarioDeStorage());
 
+  /** Variables para controlar peticiones concurrentes de renovación de token */
+  public isRefreshing = false;
+  public refreshTokenSubject = new BehaviorSubject<string | null>(null);
+
   /**
    * Inicia sesión contra el backend.
-   * El backend retorna un UsuarioLoginDTO con: id, correo, rol, activo, empresaId.
+   * El backend retorna un UsuarioLoginDTO con: id, correo, rol, activo, empresaId, token.
    * Nota: el backend usa el campo "correo" que internamente es el "username" en la BD.
    */
   login(credentials: LoginRequest): Observable<LoginResponse> {
     return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
       map((response) => {
-        // El backend retorna UsuarioLoginDTO directamente (sin token JWT por ahora).
-        // Mapeamos al modelo interno de la app.
+        // El backend retorna UsuarioLoginDTO con token JWT incluido.
         const usuario: Usuario = {
           id:        response.id,
           correo:    response.correo,
@@ -32,12 +35,15 @@ export class AuthService {
           activo:    response.activo,
           empresaId: response.empresaId
         };
-        return { usuario };
+        return { usuario, token: response.token as string };
       }),
       tap((response: LoginResponse) => {
         if (isPlatformBrowser(this.platformId)) {
-          // Guardamos los datos del usuario para mantener la sesión entre recargas.
+          // Guardamos los datos del usuario y el token JWT.
           localStorage.setItem('usuario', JSON.stringify(response.usuario));
+          if (response.token) {
+            localStorage.setItem('auth_token', response.token);
+          }
         }
         this.usuarioActual.set(response.usuario);
       })
@@ -104,16 +110,9 @@ export class AuthService {
   }
 
   /**
-   * [PREPARADO PARA BACKEND] Intenta renovar el token JWT cuando este vence.
-   * Actualmente el backend no implementa JWT, por lo que este método
-   * retorna un error inmediatamente. Cuando el backend agregue el endpoint
-   * POST /api/usuarios/refresh, solo hay que actualizar esta implementación.
-   *
-   * Flujo esperado cuando el backend lo implemente:
-   *   1. Enviar el token actual al backend
-   *   2. El backend valida y retorna un token nuevo
-   *   3. Guardar el token nuevo en localStorage
-   *   4. El interceptor reintentará la petición original
+   * Renueva el token JWT enviando el token actual al backend.
+   * El backend valida el token viejo y retorna uno nuevo.
+   * Si falla, cierra la sesión por seguridad.
    */
   refreshToken(): Observable<{ token: string }> {
     const tokenActual = this.getToken();

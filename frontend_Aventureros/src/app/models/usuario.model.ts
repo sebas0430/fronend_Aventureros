@@ -24,9 +24,10 @@ export interface LoginRequest {
 }
 
 /**
- * El backend retorna directamente los datos del usuario al hacer login,
- * sin JWT por ahora. Esta interfaz refleja la respuesta real del backend (UsuarioLoginDTO).
+ * Respuesta del login del backend (UsuarioLoginDTO).
+ * Incluye los datos del usuario y el token JWT para autenticación.
  */
 export interface LoginResponse {
   usuario: Usuario;
+  token?: string;
 }
