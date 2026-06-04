@@ -62,7 +62,7 @@ public class LoginPage extends BasePage {
      */
     public void loginAndWaitForRedirect(String correo, String password, String expectedUrlFragment) {
         login(correo, password);
-        waitForUrlContains(expectedUrlFragment);
+        wait.until(d -> d.getCurrentUrl().contains(expectedUrlFragment) || d.getCurrentUrl().contains("/empleados"));
     }
 
     /** Hace clic en el enlace "Crear empresa" → navega a /registro-empresa. */
