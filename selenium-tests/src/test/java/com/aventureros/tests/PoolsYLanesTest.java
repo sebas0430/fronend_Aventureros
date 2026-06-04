@@ -4,25 +4,15 @@ import com.aventureros.pages.LoginPage;
 import com.aventureros.pages.PoolsPage;
 import com.aventureros.pages.LanesPage;
 import org.junit.jupiter.api.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * PoolsYLanesTest – Gestión de Pools y Lanes.
- *
- * <p>Casos cubiertos:
- * <ol>
- *   <li>La página de pools carga correctamente</li>
- *   <li>Crear un pool nuevo → aparece en el grid</li>
- *   <li>Búsqueda de pool por nombre</li>
- *   <li>Abrir modal de edición de pool</li>
- *   <li>La página de lanes carga correctamente</li>
- *   <li>Seleccionar un pool en el panel lateral de Lanes</li>
- *   <li>Crear un lane en un pool</li>
- *   <li>Acceso a Pools restringido para SOLO_LECTURA (no en el navbar)</li>
- * </ol>
- * </p>
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DisplayName("Gestión de Pools y Lanes")
 class PoolsYLanesTest extends BaseTest {
@@ -43,8 +33,6 @@ class PoolsYLanesTest extends BaseTest {
         poolsPage = new PoolsPage(driver);
         lanesPage = new LanesPage(driver);
     }
-
-    // ── Tests – Pools ────────────────────────────────────────────────────────
 
     @Test
     @Order(1)
@@ -72,7 +60,6 @@ class PoolsYLanesTest extends BaseTest {
         int cantidadDespues = poolsPage.contarPools();
         assertTrue(cantidadDespues >= cantidadAntes,
             "El número de pools no debe disminuir tras crear uno nuevo");
-        // El pool recién creado debe ser encontrable en el grid
         assertFalse(poolsPage.isErrorVisible(),
             "No debe haber errores tras crear el pool");
     }
@@ -82,10 +69,8 @@ class PoolsYLanesTest extends BaseTest {
     @DisplayName("TC-POOL-03: Búsqueda por nombre filtra los resultados")
     void busquedaFiltrarPools() {
         poolsPage.open();
-        // Buscar un término que no existe → debe mostrar empty state
         poolsPage.buscar("xxxxxNOEXISTExxxxxE2E");
 
-        // O no encuentra nada, o muestra 0 resultados sin error
         assertFalse(poolsPage.isErrorVisible(),
             "La búsqueda no debe producir un error");
     }
@@ -100,13 +85,26 @@ class PoolsYLanesTest extends BaseTest {
         assertTrue(poolsPage.isModalVisible(),
             "El modal debe abrirse al hacer clic en 'Nuevo Pool'");
 
-        // Cancelar cerrando el overlay
-        poolsPage.click(org.openqa.selenium.By.cssSelector(".modal-container .btn-secondary"));
+        // Esperar a que el botón cancelar sea clickeable
+        WebElement btnCancelar = new WebDriverWait(driver, Duration.ofSeconds(10))
+            .until(ExpectedConditions.elementToBeClickable(
+                By.cssSelector(
+                    ".modal-container .btn-secondary, " +
+                    ".modal-container button[type='button']:not(.btn-primary), " +
+                    ".modal-overlay .btn-cancelar"
+                )
+            ));
+        btnCancelar.click();
+
+        // Esperar a que el modal desaparezca completamente
+        new WebDriverWait(driver, Duration.ofSeconds(5))
+            .until(ExpectedConditions.invisibilityOfElementLocated(
+                By.cssSelector(".modal-container")
+            ));
+
         assertFalse(poolsPage.isModalVisible(),
             "El modal debe cerrarse tras hacer clic en 'Cancelar'");
     }
-
-    // ── Tests – Lanes ────────────────────────────────────────────────────────
 
     @Test
     @Order(5)
@@ -126,15 +124,12 @@ class PoolsYLanesTest extends BaseTest {
     void seleccionarPoolMuestraPanelDeLanes() {
         lanesPage.open();
 
-        // Si hay pools disponibles, seleccionar el primero
-        if (lanesPage.isDisplayed(org.openqa.selenium.By.cssSelector(".pool-item"))) {
+        if (lanesPage.isDisplayed(By.cssSelector(".pool-item"))) {
             lanesPage.seleccionarPrimerPool();
             assertTrue(lanesPage.isLanesPanelVisible(),
                 "Al seleccionar un pool debe mostrarse el panel de lanes");
         } else {
-            // Sin pools, el placeholder debe mostrarse
-            assertTrue(lanesPage.isDisplayed(
-                org.openqa.selenium.By.cssSelector(".lanes-placeholder")),
+            assertTrue(lanesPage.isDisplayed(By.cssSelector(".lanes-placeholder")),
                 "Sin pools, debe mostrarse el placeholder de selección");
         }
     }
@@ -145,9 +140,8 @@ class PoolsYLanesTest extends BaseTest {
     void crearLaneEnPool() {
         lanesPage.open();
 
-        // Solo ejecutar si hay pools disponibles
-        if (!lanesPage.isDisplayed(org.openqa.selenium.By.cssSelector(".pool-item"))) {
-            return; // Skip: no hay pools aún
+        if (!lanesPage.isDisplayed(By.cssSelector(".pool-item"))) {
+            return;
         }
 
         lanesPage.seleccionarPrimerPool();

@@ -4,51 +4,93 @@ import com.aventureros.pages.LoginPage;
 import com.aventureros.pages.ActividadesPage;
 import com.aventureros.pages.ProcesosPage;
 import org.junit.jupiter.api.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * ActividadesTest – Gestión de actividades de un proceso.
- *
- * <p>Casos cubiertos:
- * <ol>
- *   <li>Acceder a la página de actividades de un proceso existente</li>
- *   <li>Crear una nueva actividad</li>
- *   <li>Volver a la vista de procesos</li>
- * </ol>
- * </p>
- */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DisplayName("Gestión de Actividades de Proceso")
 class ActividadesTest extends BaseTest {
 
     private ActividadesPage actividadesPage;
     private static final String NOMBRE_ACT = "Act E2E " + System.currentTimeMillis();
-    private static long procesoIdTest = -1;
 
     @BeforeAll
     void loginComoAdmin() {
         new LoginPage(driver).open()
             .loginAndWaitForRedirect(ADMIN_CORREO, ADMIN_PASSWORD, "/procesos");
-            
-        // Pre-requisito: tener un proceso para crearle actividades
+
         ProcesosPage procesosPage = new ProcesosPage(driver);
         procesosPage.open();
-        // Si no hay procesos, creamos uno
+
+        // Esperar que la página cargue completamente
+        new WebDriverWait(driver, Duration.ofSeconds(15))
+            .until(d -> procesosPage.isGridVisible() || procesosPage.isEmptyStateVisible());
+
+        // Crear proceso solo si no hay ninguno
         if (procesosPage.contarCardsProcesos() == 0) {
-            procesosPage.crearProceso("Proc Test", "Desc", "RRHH");
+            // Abrir modal y rellenar manualmente sin usar crearProceso()
+            // para evitar depender del success-banner
+            procesosPage.abrirModalCrear();
+
+            new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.visibilityOfElementLocated(By.id("inp-nombre")));
+
+            driver.findElement(By.id("inp-nombre")).sendKeys("Proc Test E2E");
+            driver.findElement(By.id("inp-desc")).sendKeys("Descripcion test");
+
+            // Seleccionar categoría
+            WebElement select = driver.findElement(By.id("inp-cat"));
+            select.findElements(By.tagName("option"))
+                .stream()
+                .filter(o -> !o.getAttribute("value").isEmpty())
+                .findFirst()
+                .ifPresent(WebElement::click);
+
+            // Esperar que el botón confirmar se habilite
+            new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(d -> {
+                    WebElement btn = d.findElement(By.id("btn-confirmar-crear"));
+                    return btn.getAttribute("disabled") == null && btn.isEnabled();
+                });
+
+            driver.findElement(By.id("btn-confirmar-crear")).click();
+
+            // Esperar que el modal desaparezca (no depender del banner)
+            new WebDriverWait(driver, Duration.ofSeconds(15))
+                .until(ExpectedConditions.invisibilityOfElementLocated(
+                    By.id("modal-crear-proceso")
+                ));
+
+            // Esperar que aparezca al menos una card
+            new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(d -> !d.findElements(By.cssSelector(".proceso-card")).isEmpty());
         }
-        // Asumimos que el ID puede obtenerse o navegamos directo mediante click en UI
-        // Para simplificar, navegaremos clickeando en el botón de tareas del primer proceso
-        driver.findElements(org.openqa.selenium.By.cssSelector(".btn-tareas")).get(0).click();
+
+        // Navegar a actividades del primer proceso usando btn-tareas
+        List<WebElement> btnsTareas = new WebDriverWait(driver, Duration.ofSeconds(15))
+            .until(d -> {
+                List<WebElement> btns = d.findElements(By.cssSelector(".btn-tareas"));
+                return btns.isEmpty() ? null : btns;
+            });
+
+        btnsTareas.get(0).click();
+
+        // Esperar que la URL cambie a actividades
+        new WebDriverWait(driver, Duration.ofSeconds(15))
+            .until(ExpectedConditions.urlContains("/actividades"));
     }
 
     @BeforeEach
     void setUp() {
         actividadesPage = new ActividadesPage(driver);
     }
-
-    // ── Tests ────────────────────────────────────────────────────────────────
 
     @Test
     @Order(1)
@@ -65,7 +107,8 @@ class ActividadesTest extends BaseTest {
         int antes = actividadesPage.contarActividades();
         actividadesPage.crearActividad(NOMBRE_ACT, "Desc test", "1");
         int despues = actividadesPage.contarActividades();
-        assertTrue(despues >= antes, "El número de actividades debe incrementar tras la creación");
+        assertTrue(despues >= antes,
+            "El número de actividades debe incrementar tras la creación");
     }
 
     @Test
@@ -73,7 +116,7 @@ class ActividadesTest extends BaseTest {
     @DisplayName("TC-ACT-03: Volver a procesos")
     void volverAProcesos() {
         actividadesPage.volverAProcesos();
-        assertTrue(driver.getCurrentUrl().contains("/procesos"), 
+        assertTrue(driver.getCurrentUrl().contains("/procesos"),
             "Debe haber regresado a la lista de procesos");
     }
 }

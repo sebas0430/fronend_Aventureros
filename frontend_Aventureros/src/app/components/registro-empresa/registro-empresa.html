@@ -46,11 +46,11 @@
       <button
         class="register-btn"
         type="submit"
-        [disabled]="loading">
+        [disabled]="loading || form.invalid">
 
         {{ loading ? 'Creando...' : 'Crear empresa' }}
 
       </button>
     </form>
-    </div>
-</div>  
+  </div>
+</div>

@@ -13,21 +13,16 @@ import { UsuarioService } from '../../services/usuario.service';
 export class InvitarUsuarioComponent {
   private usuarioService = inject(UsuarioService);
 
-  /** ID de la empresa del admin logueado */
   empresaId = input.required<number>();
-
-  /** Evento emitido cuando la invitación fue exitosa */
   invitacionExitosa = output<void>();
-
-  /** Evento para cerrar el modal */
   cerrar = output<void>();
 
   correo   = '';
   rol      = 'SOLO_LECTURA';
   password = '';
 
-  isLoading = false;
-  errorMsg  = '';
+  isLoading  = false;
+  errorMsg   = '';
   successMsg = '';
 
   onCerrar() {
@@ -63,6 +58,9 @@ export class InvitarUsuarioComponent {
         this.password   = '';
         this.rol        = 'SOLO_LECTURA';
         this.invitacionExitosa.emit();
+        // Cerrar el modal automáticamente tras éxito
+        // El timeout permite que el usuario vea el mensaje de éxito brevemente
+        setTimeout(() => this.cerrar.emit(), 800);
       },
       error: (err) => {
         console.error('Error al invitar:', err);

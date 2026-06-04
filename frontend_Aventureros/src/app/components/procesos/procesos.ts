@@ -115,33 +115,35 @@ export class ProcesosComponent implements OnInit {
   }
 
   crearProceso() {
-    const f = this.form();
-    if (!f.nombre.trim() || !f.descripcion.trim() || !f.categoria) return;
+  const f = this.form();
+  if (!f.nombre.trim() || !f.descripcion.trim() || !f.categoria) return;
 
-    const user = this.usuarioLogueado()!;
-    const dto: CrearProcesoRequest = {
-      nombre: f.nombre.trim(),
-      descripcion: f.descripcion.trim(),
-      categoria: f.categoria,
-      empresaId: user.empresaId,
-      autorId: user.id
-    };
+  const user = this.usuarioLogueado()!;
+  const dto: CrearProcesoRequest = {
+    nombre: f.nombre.trim(),
+    descripcion: f.descripcion.trim(),
+    categoria: f.categoria,
+    empresaId: user.empresaId,
+    autorId: user.id
+  };
 
-    this.guardando.set(true);
-    this.errorMessage.set('');
-    this.procesoService.crearProceso(dto).subscribe({
-      next: (nuevo) => {
-        this.procesos.update(lista => [nuevo, ...lista]);
-        this.guardando.set(false);
-        this.cerrarModal();
-      },
-      error: (err) => {
-        const msg = err?.error?.message || err?.error
-          || 'No se pudo crear el proceso. Verifica que tu usuario tenga rol ADMINISTRADOR_EMPRESA y que la empresa tenga un Pool configurado.';
-        this.errorMessage.set(typeof msg === 'string' ? msg : JSON.stringify(msg));
-        this.guardando.set(false);
-      }
-    });
+  this.guardando.set(true);
+  this.errorMessage.set('');
+  this.procesoService.crearProceso(dto).subscribe({
+    next: (nuevo) => {
+      this.procesos.update(lista => [nuevo, ...lista]);
+      this.guardando.set(false);
+      this.cerrarModal();
+      // AÑADIR: mostrar banner de éxito para que el test pueda verificarlo
+      this.mostrarExito(`Proceso "${nuevo.nombre}" creado correctamente.`);
+    },
+    error: (err) => {
+      const msg = err?.error?.message || err?.error
+        || 'No se pudo crear el proceso. Verifica que tu usuario tenga rol ADMINISTRADOR_EMPRESA y que la empresa tenga un Pool configurado.';
+      this.errorMessage.set(typeof msg === 'string' ? msg : JSON.stringify(msg));
+      this.guardando.set(false);
+    }
+  });
   }
 
   abrirEditor(proceso: Proceso) {
