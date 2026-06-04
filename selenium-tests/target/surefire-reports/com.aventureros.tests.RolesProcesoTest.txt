@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.aventureros.tests.RolesProcesoTest
 -------------------------------------------------------------------------------
-Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 41.80 s -- in com.aventureros.tests.RolesProcesoTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 47.78 s -- in com.aventureros.tests.RolesProcesoTest

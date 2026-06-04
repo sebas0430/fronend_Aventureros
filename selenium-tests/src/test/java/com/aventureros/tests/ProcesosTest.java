@@ -40,7 +40,7 @@ class ProcesosTest extends BaseTest {
 
     private static final String NOMBRE_PROCESO  = "Proceso E2E Test " + System.currentTimeMillis();
     private static final String DESC_PROCESO    = "Descripción generada por test automatizado";
-    private static final String CATEGORIA       = "RRHH";
+    private static final String CATEGORIA       = "Operaciones";
 
     @BeforeAll
     void loginComoAdmin() {

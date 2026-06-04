@@ -3,6 +3,8 @@ package com.aventureros.tests;
 import com.aventureros.pages.LoginPage;
 import com.aventureros.pages.ConectoresPage;
 import org.junit.jupiter.api.*;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -121,6 +123,14 @@ class ConectoresTest extends BaseTest {
 
         // Intentar navegar a /conectores
         conectoresPage.navigateTo("/conectores");
+
+        // Esperar a que Angular ejecute el roleGuard y redirija (es async)
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(5))
+                .until(d -> !d.getCurrentUrl().contains("/conectores"));
+        } catch (org.openqa.selenium.TimeoutException ignored) {
+            // Si no redirigió en 5s, la aserción abajo fallará correctamente
+        }
 
         // El authGuard + roleGuard deben redirigir
         String url = driver.getCurrentUrl();

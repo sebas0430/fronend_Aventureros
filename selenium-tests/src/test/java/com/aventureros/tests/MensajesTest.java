@@ -84,7 +84,7 @@ class MensajesTest extends BaseTest {
         mensajesPage.seleccionarPrimerProceso();
         int cantidadAntes = mensajesPage.contarEventos();
 
-        mensajesPage.crearEvento(NOMBRE_MENSAJE + "-throw", "THROW");
+        mensajesPage.crearEvento(NOMBRE_MENSAJE, "THROW");
 
         int cantidadDespues = mensajesPage.contarEventos();
         assertTrue(cantidadDespues > cantidadAntes,
@@ -103,7 +103,7 @@ class MensajesTest extends BaseTest {
         mensajesPage.seleccionarPrimerProceso();
         int cantidadAntes = mensajesPage.contarEventos();
 
-        mensajesPage.crearEvento(NOMBRE_MENSAJE + "-catch", "CATCH");
+        mensajesPage.crearEvento(NOMBRE_MENSAJE, "CATCH");
 
         int cantidadDespues = mensajesPage.contarEventos();
         assertTrue(cantidadDespues > cantidadAntes,

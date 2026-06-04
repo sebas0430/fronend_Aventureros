@@ -73,9 +73,12 @@ public class MensajesPage extends BasePage {
         // Click en el botón Lanzar dentro del modal
         click(btnLanzarMensaje);
 
-        // Esperar que aparezca .lanzar-resultado (Angular lo muestra con *ngIf)
-        // cuando resultadoLanzamiento !== null
-        wait.until(ExpectedConditions.visibilityOfElementLocated(resultadoLanzar));
+        // Esperar resultado exitoso (.lanzar-resultado) o error del backend (.mp-error)
+        // Si no hay receptor activo el backend responde con error → errorMsg, no resultado
+        wait.until(d ->
+            !d.findElements(resultadoLanzar).isEmpty() ||
+            !d.findElements(mpError).isEmpty()
+        );
     }
 
     public boolean isEventosPanelVisible() { return isDisplayed(eventosPanel);  }
